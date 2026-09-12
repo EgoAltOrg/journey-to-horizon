@@ -1,0 +1,11 @@
+public
+node_modules
+.quartz-cache
+
+# Generated content, synced from the Ontos vault by scripts/sync-from-ontos.py
+# and overwritten on every publish; formatting it here would not survive a sync.
+content
+
+# Local tool caches (also git-ignored)
+.pytest_cache
+.superpowers

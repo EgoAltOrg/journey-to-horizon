@@ -1,0 +1,6 @@
+{
+  "_comment": "Human-owned exceptions to the grounding gate (check-related-pages-grounding.py). Each entry is a connection that is genuinely public but not restated as prose on the linking page, reviewed and cleared by the GM. hub_targets: overview/utility pages any page may link. public_names: NOT_YET_PUBLIC entities whose name is public (only their page is withheld). pages: per-page target exceptions with reasons. Ships near-empty; add entries as your own wiki needs them.",
+  "hub_targets": ["index"],
+  "public_names": {},
+  "pages": {}
+}

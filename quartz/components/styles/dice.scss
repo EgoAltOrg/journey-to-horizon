@@ -1,0 +1,234 @@
+@use "../../styles/variables.scss" as *;
+
+.dice-roller {
+  margin: 1rem 0 2rem 0;
+  max-width: 40rem;
+
+  .dice-btn {
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--dark);
+    background-color: var(--light);
+    border: 1px solid var(--lightgray);
+    border-radius: 5px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    transition:
+      background-color 0.1s ease,
+      border-color 0.1s ease;
+
+    &:hover {
+      background-color: var(--highlight);
+      border-color: var(--gray);
+    }
+
+    &:active {
+      background-color: color-mix(in srgb, var(--tertiary) 25%, var(--light));
+    }
+  }
+
+  .dice-notation-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+
+    .dice-notation-input {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--dark);
+      background-color: var(--light);
+      border: 1px solid var(--lightgray);
+      border-radius: 5px;
+      padding: 0.4rem 0.7rem;
+
+      &:focus {
+        outline: none;
+        border-color: var(--secondary);
+      }
+
+      &::placeholder {
+        color: var(--gray);
+      }
+    }
+
+    .dice-roll-btn {
+      flex: 0 0 auto;
+      font-weight: $semiBoldWeight;
+      color: var(--light);
+      background-color: var(--secondary);
+      border-color: var(--secondary);
+
+      &:hover {
+        background-color: color-mix(in srgb, var(--secondary) 85%, var(--dark));
+        border-color: color-mix(in srgb, var(--secondary) 85%, var(--dark));
+      }
+    }
+  }
+
+  .dice-quick-rolls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+
+    .dice-duality-btn {
+      margin-left: auto;
+      font-weight: $semiBoldWeight;
+    }
+  }
+
+  .dice-result {
+    min-height: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .dice-result-card {
+    border: 1px solid var(--lightgray);
+    border-radius: 6px;
+    background-color: var(--light);
+    padding: 1rem 1.25rem;
+    text-align: center;
+
+    .dice-result-notation {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--gray);
+    }
+
+    .dice-result-breakdown {
+      font-size: 1.05rem;
+      color: var(--darkgray);
+      margin-top: 0.25rem;
+      overflow-wrap: anywhere;
+    }
+
+    .dice-result-total {
+      font-size: 2.4rem;
+      font-weight: $boldWeight;
+      color: var(--secondary);
+      line-height: 1.1;
+      margin-top: 0.35rem;
+    }
+  }
+
+  .dice-duality-dice {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+
+    .dice-die {
+      font-weight: $semiBoldWeight;
+      border-radius: 5px;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid var(--lightgray);
+    }
+
+    .dice-die--hope {
+      color: var(--dark);
+      background-color: color-mix(in srgb, #d9a520 22%, var(--light));
+      border-color: color-mix(in srgb, #d9a520 45%, var(--lightgray));
+    }
+
+    .dice-die--fear {
+      color: var(--dark);
+      background-color: color-mix(in srgb, #7d5ba6 22%, var(--light));
+      border-color: color-mix(in srgb, #7d5ba6 45%, var(--lightgray));
+    }
+  }
+
+  .dice-verdict {
+    font-weight: $semiBoldWeight;
+    margin-top: 0.35rem;
+
+    &.dice-verdict--hope {
+      color: color-mix(in srgb, #d9a520 70%, var(--darkgray));
+    }
+
+    &.dice-verdict--fear {
+      color: color-mix(in srgb, #7d5ba6 70%, var(--darkgray));
+    }
+
+    &.dice-verdict--crit {
+      color: var(--secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  }
+
+  .dice-result-error {
+    border: 1px solid color-mix(in srgb, #c0392b 45%, var(--lightgray));
+    background-color: color-mix(in srgb, #c0392b 10%, var(--light));
+    color: color-mix(in srgb, #c0392b 70%, var(--darkgray));
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+  }
+
+  .dice-history-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--lightgray);
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
+
+    .dice-history-title {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .dice-clear-btn {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+    }
+  }
+
+  .dice-history {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    .dice-history-item {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      padding: 0.35rem 0.1rem;
+      border-bottom: 1px solid var(--lightgray);
+      font-size: 0.9rem;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .dice-history-label {
+        font-weight: $semiBoldWeight;
+        color: var(--dark);
+        flex: 0 0 auto;
+      }
+
+      .dice-history-detail {
+        color: var(--gray);
+        flex: 1 1 auto;
+        overflow-wrap: anywhere;
+      }
+
+      .dice-history-verdict {
+        font-size: 0.8rem;
+        flex: 0 0 auto;
+      }
+
+      .dice-history-total {
+        font-weight: $boldWeight;
+        color: var(--secondary);
+        flex: 0 0 auto;
+        min-width: 1.5rem;
+        text-align: right;
+      }
+    }
+  }
+}

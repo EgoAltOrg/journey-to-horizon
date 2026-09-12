@@ -1,0 +1,23 @@
+# This repository is a pinned fork of Quartz v4 (@jackyzha0/quartz 4.5.2).
+# Its npm dependency versions are meant to track upstream Quartz, not to be
+# bumped independently by Dependabot: a grouped "production-dependencies" PR of
+# 28 packages (several of them major-version jumps) risks breaking the v4 build,
+# and the framework is deliberately held at v4 rather than migrated to v5.
+#
+# So routine Dependabot VERSION updates are disabled here via
+# open-pull-requests-limit: 0. Dependabot SECURITY updates are a separate
+# feature and are NOT affected by this file, so genuine vulnerability patches
+# still open PRs. Dependency refreshes otherwise come from pulling upstream
+# Quartz, not from monthly Dependabot churn.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 0
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 0

@@ -1,0 +1,4 @@
+{
+  "_comment": "Human-cleared Tier-2 exceptions to check-spoiler-leak.py. Each entry is a secret-signaling phrase that is actually legitimate in-world public prose, not a leak. Keyed by content/-relative path, then the exact lowercased matched phrase, with a reason. Tier-1 author-terminology is NEVER allowlistable. Ships empty; add entries as your own wiki needs them.",
+  "pages": {}
+}
