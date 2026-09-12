@@ -38,6 +38,14 @@ TITLES = {
     "index.pt.md": "Início",
     "world.en.md": "The World",
     "world.pt.md": "O Mundo",
+    "terranamancy.en.md": "Terranamancy",
+    "terranamancy.pt.md": "Terranamância",
+    "house-rules.en.md": "House Rules",
+    "house-rules.pt.md": "Regras da Casa",
+    "gazetteer.en.md": "Gazetteer",
+    "gazetteer.pt.md": "Gazetteer",
+    "marrogate.en.md": "Marrogate",
+    "marrogate.pt.md": "Marrogate",
 }
 
 # source filename (in ONTOS_SETTING) -> destination path (relative to content/).
@@ -52,6 +60,16 @@ PAGE_MAP = {
     "index.pt.md": "pt/index.md",
     "world.en.md": "world.md",
     "world.pt.md": "pt/world.md",
+    "terranamancy.en.md": "terranamancy.md",
+    "terranamancy.pt.md": "pt/terranamancy.md",
+    "house-rules.en.md": "house-rules.md",
+    "house-rules.pt.md": "pt/house-rules.md",
+    "gazetteer.en.md": "gazetteer.md",
+    "gazetteer.pt.md": "pt/gazetteer.md",
+    # Marrogate is a gazetteer entry and the map's first POI pin. Its lore syncs
+    # here; its marker: coords live in content/ and carry forward (rule-26).
+    "marrogate.en.md": "gazetteer/marrogate.md",
+    "marrogate.pt.md": "pt/gazetteer/marrogate.md",
 }
 
 # Old-URL -> forever-redirect table, keyed by CURRENT destination (the PAGE_MAP
@@ -73,6 +91,7 @@ NOT_YET_PUBLIC = set()
 # exception that content/changelog.md also relies on).
 CONTENT_ONLY = {
     "map.md",
+    "pt/map.md",
 }
 
 # The public-fields contract for the typed infobox: the ONLY frontmatter keys,
