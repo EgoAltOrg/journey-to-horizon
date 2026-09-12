@@ -36,6 +36,8 @@ ONTOS_SETTING = Path(
 TITLES = {
     "index.en.md": "Home",
     "index.pt.md": "Início",
+    "world.en.md": "The World",
+    "world.pt.md": "O Mundo",
 }
 
 # source filename (in ONTOS_SETTING) -> destination path (relative to content/).
@@ -48,6 +50,8 @@ PAGE_MAP = {
     # subtree. The top nav and LanguageToggle switch between the two.
     "index.en.md": "index.md",
     "index.pt.md": "pt/index.md",
+    "world.en.md": "world.md",
+    "world.pt.md": "pt/world.md",
 }
 
 # Old-URL -> forever-redirect table, keyed by CURRENT destination (the PAGE_MAP
