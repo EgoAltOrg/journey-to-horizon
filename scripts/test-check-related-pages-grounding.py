@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Unit tests for check-related-pages-grounding.py's title_pattern matcher.
+"""Unit tests for check-related-pages-grounding.py (title_pattern matcher +
+the bilingual full-slug resolver and title map).
 Run: python3 scripts/test-check-related-pages-grounding.py"""
 import importlib.util
+import tempfile
 from pathlib import Path
 
 spec = importlib.util.spec_from_file_location(
@@ -102,6 +104,64 @@ def test_plural_title_does_not_match_singular_across_the_firewall():
         "'Heresies' must NOT match the public singular 'Heresy'"
     assert p.search("the northern heresies spread"), \
         "'Heresies' must still match its own plural 'heresies'"
+
+
+# --- bilingual resolver + title map (the 2026-09-12 /pt/ generalization) ---
+
+# A representative bilingual slug set: EN at the root, PT under /pt/, a nested
+# gazetteer entry in both, and the two content-only map pages.
+_SLUGS = sorted([
+    "index", "pt/index", "world", "pt/world", "gazetteer", "pt/gazetteer",
+    "gazetteer/marrogate", "pt/gazetteer/marrogate", "map", "pt/map",
+])
+_SLUG_SET = set(_SLUGS)
+
+
+def test_resolve_slug_full_paths_and_bare_roots():
+    # Full-path links (PT subtree, nested) resolve to their own page; a bare
+    # root link resolves by absolute path (two basename matches -> not unique).
+    assert grd.resolve_slug("pt/world", _SLUGS, _SLUG_SET) == "pt/world"
+    assert grd.resolve_slug("world", _SLUGS, _SLUG_SET) == "world"
+    assert grd.resolve_slug("gazetteer/marrogate", _SLUGS, _SLUG_SET) == "gazetteer/marrogate"
+    assert grd.resolve_slug("pt/gazetteer/marrogate", _SLUGS, _SLUG_SET) == "pt/gazetteer/marrogate"
+
+
+def test_resolve_slug_ambiguous_and_missing_are_none():
+    # Bare [[marrogate]] matches two files (gazetteer/ and pt/gazetteer/), so it
+    # is NOT unique and has no /marrogate root -> Quartz breaks it -> None.
+    assert grd.resolve_slug("marrogate", _SLUGS, _SLUG_SET) is None
+    assert grd.resolve_slug("nonexistent", _SLUGS, _SLUG_SET) is None
+    assert grd.resolve_slug("", _SLUGS, _SLUG_SET) is None
+
+
+def test_resolve_slug_folder_index_and_trailing_slash():
+    # A bare folder name resolves to its index; a trailing slash is a folder
+    # link that resolves ONLY to an existing index (world/ has none -> None).
+    assert grd.resolve_slug("pt", _SLUGS, _SLUG_SET) == "pt/index"
+    assert grd.resolve_slug("pt/", _SLUGS, _SLUG_SET) == "pt/index"
+    assert grd.resolve_slug("world/", _SLUGS, _SLUG_SET) is None
+
+
+def test_resolve_title_keeps_languages_distinct():
+    # The collision this whole change fixes: world and pt/world must NOT share a
+    # title. resolve_title returns each language's own title.
+    titles = {"world": "The World", "pt/world": "O Mundo"}
+    assert grd.resolve_title("world", titles, _SLUGS, _SLUG_SET) == "The World"
+    assert grd.resolve_title("pt/world", titles, _SLUGS, _SLUG_SET) == "O Mundo"
+
+
+def test_build_title_map_no_basename_collision():
+    # build_title_map must key by full slug so a bilingual pair does not overwrite
+    # each other by shared basename (the pre-fix bug keyed by stem).
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        (root / "pt").mkdir()
+        (root / "world.md").write_text("---\ntitle: The World\n---\nbody\n")
+        (root / "pt" / "world.md").write_text("---\ntitle: O Mundo\n---\ncorpo\n")
+        titles, folders, slugs, slug_set = grd.build_title_map(root)
+    assert titles["world"] == "The World"
+    assert titles["pt/world"] == "O Mundo"
+    assert "world" in slug_set and "pt/world" in slug_set
 
 
 if __name__ == "__main__":

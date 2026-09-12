@@ -38,7 +38,53 @@ def is_embed(line, match_start):
     return match_start > 0 and line[match_start - 1] == "!"
 
 
-def find_broken(existing):
+def _shortest_key(slug):
+    """The last path segment a Quartz "shortest" match compares against, with
+    a folder's own index.md standing in for its parent folder name (so
+    [[armada]] can resolve to locations/armada/index.md)."""
+    parts = slug.split("/")
+    if parts[-1] == "index" and len(parts) >= 2:
+        return parts[-2]
+    return parts[-1]
+
+
+def resolve_target(target, slugs, slug_set):
+    """Resolve an Obsidian wikilink target to a content slug exactly the way
+    Quartz's markdownLinkResolution:"shortest" does (quartz/util/path.ts,
+    transformLink): a UNIQUE last-segment match wins; otherwise (zero or two-
+    plus matches) the target is taken as an absolute root-relative slug and
+    resolves only if that slug (or that folder's index) actually exists.
+
+    This is why a bilingual wiki's [[pt/world]] and a nested [[gazetteer/
+    marrogate]] resolve (absolute path hits a real page) while a bare
+    [[marrogate]] that matches two files does NOT (two matches -> absolute
+    /marrogate -> no such page). A trailing slash marks a folder link, which
+    Quartz resolves ONLY to that folder's index. Returns the resolved slug, or
+    None if Quartz would leave the link dangling.
+
+    Case-SENSITIVE, matching Quartz's sluggify (which never lowercases). The
+    grounding gate's twin resolve_slug lowercases instead, deliberately: that
+    gate keys everything lowercase and errs toward grounding (a genuinely
+    broken link is this gate's job to flag, not that one's)."""
+    raw = target.split("#", 1)[0].strip()
+    is_folder = raw.endswith("/")
+    canonical = raw.strip("/")
+    if not canonical:
+        return None
+    if is_folder:
+        # [[world/]] -> Quartz emits /world/ and serves only world/index.
+        return f"{canonical}/index" if f"{canonical}/index" in slug_set else None
+    matches = [s for s in slugs if _shortest_key(s) == canonical]
+    if len(matches) == 1:
+        return matches[0]
+    if canonical in slug_set:
+        return canonical
+    if f"{canonical}/index" in slug_set:
+        return f"{canonical}/index"
+    return None
+
+
+def find_broken(slugs, slug_set):
     broken = []
     for md_file in sorted(CONTENT_DIR.rglob("*.md")):
         for lineno, line in enumerate(md_file.read_text().splitlines(), 1):
@@ -46,18 +92,18 @@ def find_broken(existing):
                 if is_embed(line, match.start()):
                     continue
                 target = match.group(1).strip()
-                if target and target not in existing:
+                if target and resolve_target(target, slugs, slug_set) is None:
                     broken.append((md_file, lineno, target))
     return broken
 
 
-def fix_file(md_file, existing):
+def fix_file(md_file, slugs, slug_set):
     lines = md_file.read_text().splitlines()
     new_lines = []
     changes = []
     for lineno, line in enumerate(lines, 1):
         toc_match = TOC_LINE_RE.match(line)
-        if toc_match and toc_match.group(2).strip() not in existing:
+        if toc_match and resolve_target(toc_match.group(2).strip(), slugs, slug_set) is None:
             changes.append((lineno, "deleted line", line.strip()))
             continue  # drop the whole line
 
@@ -65,7 +111,7 @@ def fix_file(md_file, existing):
             if is_embed(line, m.start()):
                 return m.group(0)
             target = m.group(1).strip()
-            if target in existing:
+            if resolve_target(target, slugs, slug_set) is not None:
                 return m.group(0)
             display = (m.group(3) or target).strip()
             changes.append((lineno, f"de-linked to plain text: {display!r}", line.strip()))
@@ -76,22 +122,22 @@ def fix_file(md_file, existing):
     return changes
 
 
-def existing_targets():
-    """Every wikilink target Quartz's resolver would consider satisfied:
-    a page's own filename, plus (matching the patched "shortest" resolution
-    strategy in quartz/util/path.ts) a folder's name for its own index.md."""
-    targets = set()
-    for p in CONTENT_DIR.rglob("*.md"):
-        targets.add(p.stem)
-        if p.stem == "index":
-            targets.add(p.parent.name)
-    return targets
+def page_slugs():
+    """Every page's full root-relative slug (POSIX, no .md), plus a set for
+    fast membership. A target resolves against these the way Quartz does; see
+    resolve_target. Full slugs (not just basenames) are what let [[pt/world]]
+    and [[gazetteer/marrogate]] resolve instead of being false-flagged."""
+    slugs = sorted(
+        p.relative_to(CONTENT_DIR).with_suffix("").as_posix()
+        for p in CONTENT_DIR.rglob("*.md")
+    )
+    return slugs, set(slugs)
 
 
 def main():
     fix = "--fix" in sys.argv
-    existing = existing_targets()
-    broken = find_broken(existing)
+    slugs, slug_set = page_slugs()
+    broken = find_broken(slugs, slug_set)
 
     if not broken:
         print("No broken wikilinks found.")
@@ -106,11 +152,11 @@ def main():
     affected_files = sorted({md_file for md_file, _, _ in broken})
     print(f"Found {len(broken)} broken wikilink(s) across {len(affected_files)} file(s), fixing:\n")
     for md_file in affected_files:
-        for lineno, action, original in fix_file(md_file, existing):
+        for lineno, action, original in fix_file(md_file, slugs, slug_set):
             print(f"  {md_file.relative_to(CONTENT_DIR)}:{lineno} -> {action}")
             print(f"      was: {original}")
 
-    remaining = find_broken(existing)
+    remaining = find_broken(slugs, slug_set)
     if remaining:
         print(f"\n{len(remaining)} broken wikilink(s) could not be auto-fixed, needs a manual look:")
         for md_file, lineno, target in remaining:

@@ -35,17 +35,28 @@ from pathlib import Path
 CONTENT = Path(__file__).resolve().parent.parent / "content"
 ALLOWLIST_PATH = Path(__file__).resolve().parent / "spoiler-leak-allowlist.json"
 
-# Author-side terminology. Zero legitimate use in player-facing prose, so these
-# are never allowlistable: fix the source instead.
-TIER1 = [
+# Author-side terminology and secret-existence markers. Zero legitimate use in
+# player-facing prose on ANY wiki, so these are never allowlistable and never
+# reclassifiable: "gm-only"/"gm-notes"/"[!gm" are the real leak vectors (an
+# author note that escaped its callout). Fix the source instead.
+TIER1_AUTHOR_MARKERS = [
     r"\bgm[-\s]?only\b",
     r"\bgm[-\s]?notes?\b",
-    r"\bgm\b",
     r"\[!\s*gm",
     r"\bthe truth is otherwise\b",
     r"\bnot for (the )?players\b",
     r"\bdo\s?n[’']?t reveal\b",
     r"\breveal(ed)? to (the )?players\b",
+]
+
+# The GM named as a role/person. On a single-GM, secret-heavy wiki (Althas) this
+# in player prose reads as author voice, so it defaults to Tier 1. On an open
+# table whose premise IS a rotating GM pool (Journey to Horizon), the role word
+# is ordinary player vocabulary ("each session has a different GM"). A wiki opts
+# these OUT of Tier 1 by setting "gm_role_is_player_vocabulary": true in its
+# spoiler-leak-allowlist.json; that flag NEVER touches the author markers above.
+TIER1_GM_ROLE = [
+    r"\bgm\b",
     r"\bgamemaster\b",
     r"\bgame master\b",
     r"\bdungeon master\b",
@@ -83,7 +94,10 @@ TIER2 = [
     r"\bprison wall\b",
 ]
 
-TIER1_RE = [re.compile(p, re.IGNORECASE) for p in TIER1]
+TIER1_AUTHOR_RE = [re.compile(p, re.IGNORECASE) for p in TIER1_AUTHOR_MARKERS]
+TIER1_GM_ROLE_RE = [re.compile(p, re.IGNORECASE) for p in TIER1_GM_ROLE]
+# Default (strict): author markers + GM role, i.e. pre-config behavior.
+TIER1_STRICT_RE = TIER1_AUTHOR_RE + TIER1_GM_ROLE_RE
 TIER2_RE = [re.compile(p, re.IGNORECASE) for p in TIER2]
 FRONTMATTER_RE = re.compile(r"^---\n.*?\n---\n?", re.DOTALL)
 
@@ -91,15 +105,18 @@ FRONTMATTER_RE = re.compile(r"^---\n.*?\n---\n?", re.DOTALL)
 def load_allowlist():
     if not ALLOWLIST_PATH.exists():
         return {}
-    data = json.loads(ALLOWLIST_PATH.read_text())
-    return data.get("pages", {})
+    return json.loads(ALLOWLIST_PATH.read_text())
 
 
-def scan_text(text):
-    """Return (tier1_hits, tier2_hits): lists of (line_no, matched_phrase)."""
+def scan_text(text, tier1_res=None):
+    """Return (tier1_hits, tier2_hits): lists of (line_no, matched_phrase).
+    tier1_res defaults to the strict set (author markers + GM role); main()
+    passes the active set once it has read the per-wiki role-term flag."""
+    if tier1_res is None:
+        tier1_res = TIER1_STRICT_RE
     t1, t2 = [], []
     for i, line in enumerate(text.splitlines(), 1):
-        for rx in TIER1_RE:
+        for rx in tier1_res:
             for m in rx.finditer(line):
                 t1.append((i, m.group(0).lower()))
         for rx in TIER2_RE:
@@ -109,7 +126,12 @@ def scan_text(text):
 
 
 def main():
-    allow = load_allowlist()
+    data = load_allowlist()
+    allow = data.get("pages", {})
+    # Per-wiki spoiler strictness: an open table (rotating GMs) opts the GM ROLE
+    # terms out of Tier 1; the author markers stay Tier 1 unconditionally.
+    role_is_vocab = bool(data.get("gm_role_is_player_vocabulary", False))
+    tier1_res = TIER1_AUTHOR_RE if role_is_vocab else TIER1_STRICT_RE
     findings = []
     for md in sorted(CONTENT.rglob("*.md")):
         if ".obsidian" in md.parts:
@@ -118,7 +140,7 @@ def main():
         text = md.read_text()
         # Frontmatter can legitimately hold nothing secret, but scan the whole
         # file anyway: a leaked key would matter too. (Kept simple: scan all.)
-        t1, t2 = scan_text(text)
+        t1, t2 = scan_text(text, tier1_res)
         for ln, phrase in t1:
             findings.append((rel, ln, phrase, "author-terminology (Tier 1, not allowlistable)"))
         page_allow = {k.lower() for k in allow.get(rel, {})}

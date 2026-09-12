@@ -1,4 +1,6 @@
 {
-  "_comment": "Human-cleared Tier-2 exceptions to check-spoiler-leak.py. Each entry is a secret-signaling phrase that is actually legitimate in-world public prose, not a leak. Keyed by content/-relative path, then the exact lowercased matched phrase, with a reason. Tier-1 author-terminology is NEVER allowlistable. Ships empty; add entries as your own wiki needs them.",
+  "_comment": "Human-cleared Tier-2 exceptions to check-spoiler-leak.py. Each entry is a secret-signaling phrase that is actually legitimate in-world public prose, not a leak. Keyed by content/-relative path, then the exact lowercased matched phrase, with a reason. Tier-1 author-terminology (gm-only, gm-notes, [!gm, 'the truth is otherwise', ...) is NEVER allowlistable. Ships empty; add entries as your own wiki needs them.",
+  "_comment_gm_role": "Journey to Horizon is a rotating-GM open table, so the GM ROLE terms (GM, Game Master, gamemaster, dungeon master) are legitimate player-facing vocabulary, not an author-voice leak. This flag opts them out of Tier 1 (Lucas's call, 2026-09-12, rule 29). It does NOT touch the author markers above, which stay Tier 1. A single-GM secret-heavy wiki leaves this false (the default).",
+  "gm_role_is_player_vocabulary": true,
   "pages": {}
 }

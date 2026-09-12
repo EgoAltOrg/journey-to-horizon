@@ -48,6 +48,26 @@ def test_in_reality_is_tier2_not_tier1():
     assert any(p == "in reality" for _, p in t2), "'in reality' should be a Tier 2 hit"
 
 
+def test_strict_default_flags_gm_role():
+    # No tier1_res passed -> strict set (author markers + GM role), i.e. the
+    # pre-config default a single-GM wiki relies on. Bare 'GM' is Tier 1.
+    t1, _ = csl.scan_text("the GM decides the outcome")
+    assert any(p == "gm" for _, p in t1), "strict default must flag the GM role term"
+
+
+def test_gm_role_opt_out_still_blocks_author_markers():
+    # An open table opts the GM ROLE words out of Tier 1 (author markers only).
+    role_off = csl.TIER1_AUTHOR_RE
+    t1, _ = csl.scan_text("each session has a different GM", role_off)
+    assert not t1, "with role opt-out, the bare role word must be allowed"
+    t1, _ = csl.scan_text("the GM decides", role_off)
+    assert not t1, "with role opt-out, 'the GM' must be allowed"
+    # The real leak vectors stay Tier 1 no matter what the flag says.
+    for marker in ["> [!gm-only] hidden", "this is GM-only", "the truth is otherwise"]:
+        t1, _ = csl.scan_text(marker, role_off)
+        assert t1, f"author marker must stay Tier 1 under role opt-out: {marker!r}"
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
