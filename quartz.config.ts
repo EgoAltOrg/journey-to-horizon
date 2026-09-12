@@ -8,15 +8,13 @@ import * as Plugin from "./quartz/plugins"
  */
 const config: QuartzConfig = {
   configuration: {
-    // CHANGE per wiki: pageTitle is the site name, baseUrl is
-    // egoaltorg.github.io/<your-repo> (used for RSS, sitemap, and OG tags).
-    pageTitle: "Wiki",
+    pageTitle: "Journey to Horizon",
     pageTitleSuffix: "",
     enableSPA: true,
     enablePopovers: true,
     analytics: null,
     locale: "en-US",
-    baseUrl: "egoaltorg.github.io/CHANGE-ME",
+    baseUrl: "egoaltorg.github.io/journey-to-horizon",
     ignorePatterns: ["private", "templates", ".obsidian"],
     defaultDateType: "modified",
     theme: {
@@ -28,29 +26,29 @@ const config: QuartzConfig = {
         code: "IBM Plex Mono",
       },
       colors: {
-        // Default theme (a warm parchment day / ember night). Replace both
-        // palettes per wiki, e.g. derived from the campaign's key art.
+        // Journey to Horizon theme, from the campaign frame art: sea-mist day /
+        // deep-ocean night, teal and cyan with warm gold accents.
         lightMode: {
-          light: "#f8f2e7",
-          lightgray: "#e2d8c8",
-          gray: "#a99b88",
-          darkgray: "#4a3f38",
-          dark: "#2c2320",
-          secondary: "#a34a1f",
-          tertiary: "#c96c3b",
-          highlight: "rgba(163, 74, 31, 0.10)",
-          textHighlight: "#f0913a55",
+          light: "#f1f5f6",
+          lightgray: "#d6e0e2",
+          gray: "#849aa0",
+          darkgray: "#2b3a42",
+          dark: "#12314f",
+          secondary: "#1d6f86",
+          tertiary: "#c0883a",
+          highlight: "rgba(29, 111, 134, 0.10)",
+          textHighlight: "#d8b14f55",
         },
         darkMode: {
-          light: "#140f11",
-          lightgray: "#3a2b27",
-          gray: "#8a7466",
-          darkgray: "#d8cec2",
-          dark: "#f0e8da",
-          secondary: "#f0913a",
-          tertiary: "#c96c3b",
-          highlight: "rgba(240, 145, 58, 0.12)",
-          textHighlight: "#f0913a44",
+          light: "#0f1720",
+          lightgray: "#26333d",
+          gray: "#6f878f",
+          darkgray: "#cdd8dd",
+          dark: "#eaf2f5",
+          secondary: "#37b4d4",
+          tertiary: "#d8b14f",
+          highlight: "rgba(55, 180, 212, 0.12)",
+          textHighlight: "#d8b14f44",
         },
       },
     },

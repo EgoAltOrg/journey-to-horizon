@@ -26,7 +26,7 @@ from pathlib import Path
 ONTOS_SETTING = Path(
     os.environ.get(
         "WIKI_ONTOS_SETTING_DIR",
-        str(Path.home() / "Desktop/Ontos/Projects/CHANGE-ME/setting"),
+        str(Path.home() / "Desktop/Ontos/Projects/rpgs-and-gest/daggerheart/campaigns/journey-to-horizon-wm/setting"),
     )
 )
 
@@ -34,7 +34,8 @@ ONTOS_SETTING = Path(
 # always matches your own naming exactly, including casing and punctuation.
 # Example: "the-rekindling.md": "The Rekindling",
 TITLES = {
-    "index.md": "Home",
+    "index.en.md": "Home",
+    "index.pt.md": "Início",
 }
 
 # source filename (in ONTOS_SETTING) -> destination path (relative to content/).
@@ -42,7 +43,11 @@ TITLES = {
 # or simply not part of this wiki). Use folders that match your content/ layout.
 # Example: "the-rekindling.md": "world/the-rekindling.md",
 PAGE_MAP = {
-    "index.md": "index.md",
+    # Bilingual: each page has two source files, <name>.en.md and <name>.pt.md.
+    # English publishes at the slug; Portuguese publishes under a parallel /pt/
+    # subtree. The top nav and LanguageToggle switch between the two.
+    "index.en.md": "index.md",
+    "index.pt.md": "pt/index.md",
 }
 
 # Old-URL -> forever-redirect table, keyed by CURRENT destination (the PAGE_MAP

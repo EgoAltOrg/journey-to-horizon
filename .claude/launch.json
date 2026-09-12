@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "althas-wiki",
+      "name": "journey-to-horizon",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["quartz", "build", "--serve"],
       "port": 8080

@@ -1,65 +1,32 @@
 @use "./base.scss";
 
 // ============================================================
-// Five Banners Burning theme accents
-// Palette lives in quartz.config.ts (parchment day / ember night);
-// this file adds the mood layers the palette alone can't carry.
-// No book art here: the site is public and the DPCGL license
-// covers SRD text, not Darrington Press artwork.
+// Per-wiki visual accents. The color palette lives in quartz.config.ts;
+// this file adds mood the palette alone can't carry. Keep it small.
+//
+// Optional background art: drop your OWN or a licensed image (not book
+// art, per the DPCGL) at quartz/static/<name>.jpg (served at
+// static/<name>.jpg after build), then uncomment the block below and set
+// the filename. The dark scrim keeps page text readable. Off by default.
 // ============================================================
 
-// Five Banners Burning art on the horizon (dark mode): the frame's
-// title art, top-anchored under a scrim that fades to near-opaque
-// charcoal so page text stays readable. The image ships from
-// quartz/static/ (public/static/fbb-bg.jpg after build); the URL is
-// relative to the compiled index.css so it survives the GitHub
-// Pages subpath.
-:root[saved-theme="dark"] body {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(16, 10, 12, 0.55) 0%,
-      rgba(16, 10, 12, 0.75) 30%,
-      rgba(15, 10, 12, 0.92) 60%,
-      rgba(14, 9, 11, 0.97) 100%
-    ),
-    url("static/fbb-bg.jpg");
-  background-color: #140f11;
-  background-size: cover, cover;
-  background-position:
-    top center,
-    top center;
-  background-repeat: no-repeat, no-repeat;
-  background-attachment: fixed, fixed;
-}
+// :root[saved-theme="dark"] body {
+//   background:
+//     linear-gradient(
+//       to bottom,
+//       rgba(15, 23, 32, 0.55) 0%,
+//       rgba(15, 23, 32, 0.9) 60%,
+//       rgba(15, 23, 32, 0.97) 100%
+//     ),
+//     url("static/<name>.jpg");
+//   background-color: var(--light);
+//   background-size: cover;
+//   background-position: top center;
+//   background-repeat: no-repeat;
+//   background-attachment: fixed;
+// }
 
-// Parchment warmth (light mode): the faintest vignette so pages
-// read as aged paper rather than flat white.
-:root[saved-theme="light"] body {
-  background:
-    radial-gradient(ellipse 120% 70% at 50% 0%, rgba(240, 145, 58, 0.05), transparent 70%), #f8f2e7;
-  background-attachment: fixed;
-}
-
-// Banner-script titles: small caps on the site title and article
-// headings, in the ember accent for the page title.
-.page-title {
-  font-variant: small-caps;
-  letter-spacing: 0.06em;
-}
-
-article h1,
-article h2 {
-  font-variant: small-caps;
-  letter-spacing: 0.03em;
-}
-
-// Ember divider under the article title.
-article > h1:first-of-type {
-  border-bottom: 1px solid var(--lightgray);
-  padding-bottom: 0.25em;
-}
-
+// Divider accent, theme-aware.
 hr {
   border: none;
   height: 1px;

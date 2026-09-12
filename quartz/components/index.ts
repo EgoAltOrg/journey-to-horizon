@@ -16,6 +16,8 @@ import Graph from "./Graph"
 import Backlinks from "./Backlinks"
 import Infobox from "./Infobox"
 import DiceRoller from "./DiceRoller"
+import TopNav from "./TopNav"
+import LanguageToggle from "./LanguageToggle"
 import Search from "./Search"
 import Footer from "./Footer"
 import DesktopOnly from "./DesktopOnly"
@@ -44,6 +46,8 @@ export {
   Backlinks,
   Infobox,
   DiceRoller,
+  TopNav,
+  LanguageToggle,
   Search,
   Footer,
   DesktopOnly,
