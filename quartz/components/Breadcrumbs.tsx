@@ -19,6 +19,11 @@ interface BreadcrumbOptions {
    */
   rootName: string
   /**
+   * Name of first crumb on Portuguese pages (slug under pt/). The wiki is
+   * bilingual with a parallel /pt/ subtree, so the root crumb is localized.
+   */
+  rootNamePt: string
+  /**
    * Whether to look up frontmatter title for folders (could cause performance problems with big vaults)
    */
   resolveFrontmatterTitle: boolean
@@ -31,6 +36,7 @@ interface BreadcrumbOptions {
 const defaultOptions: BreadcrumbOptions = {
   spacerSymbol: "❯",
   rootName: "Home",
+  rootNamePt: "Início",
   resolveFrontmatterTitle: true,
   showCurrentPage: true,
 }
@@ -51,26 +57,35 @@ export default ((opts?: Partial<BreadcrumbOptions>) => {
     ctx,
   }: QuartzComponentProps) => {
     const trie = (ctx.trie ??= trieFromAllFiles(allFiles))
-    const slugParts = fileData.slug!.split("/")
+    const slug = fileData.slug ?? ""
+    const isPt = slug === "pt" || slug.startsWith("pt/")
+    const slugParts = slug.split("/")
     const pathNodes = trie.ancestryChain(slugParts)
 
     if (!pathNodes) {
       return null
     }
 
-    const crumbs: CrumbData[] = pathNodes.map((node, idx) => {
+    let crumbs: CrumbData[] = pathNodes.map((node, idx) => {
       const crumb = formatCrumb(node.displayName, fileData.slug!, simplifySlug(node.slug))
-      if (idx === 0) {
-        crumb.displayName = options.rootName
-      }
-
       // For last node (current page), set empty path
       if (idx === pathNodes.length - 1) {
         crumb.path = ""
       }
-
       return crumb
     })
+
+    if (isPt) {
+      // On a Portuguese page the ancestry chain is [site root, pt folder, page].
+      // Drop the English site-root crumb and localize the /pt/ root, so the trail
+      // reads "Início ❯ Page" instead of "Home ❯ pt ❯ Page".
+      crumbs = crumbs.slice(1)
+      if (crumbs.length > 0) {
+        crumbs[0].displayName = options.rootNamePt
+      }
+    } else if (crumbs.length > 0) {
+      crumbs[0].displayName = options.rootName
+    }
 
     if (!options.showCurrentPage) {
       crumbs.pop()
