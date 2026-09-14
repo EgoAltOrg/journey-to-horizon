@@ -43,6 +43,14 @@ from sync_config import (  # noqa: E402
     INFOBOX_KIND_FIELDS,
 )
 
+# Optional per-wiki knob (bilingual wikis only): extra source-basename -> slug
+# link rewrites for content-only stub targets that have no synced source page
+# (e.g. the hand-built interactive map). Monolingual wikis omit it entirely.
+try:
+    from sync_config import LINK_REWRITE  # noqa: E402
+except ImportError:
+    LINK_REWRITE = {}
+
 CONTENT_DIR = Path(__file__).resolve().parent.parent / "content"
 
 CALLOUT_START_RE = re.compile(r"^>\s*\[!(gm-only|gm-notes)\]", re.IGNORECASE)
@@ -51,6 +59,58 @@ CALLOUT_START_RE = re.compile(r"^>\s*\[!(gm-only|gm-notes)\]", re.IGNORECASE)
 CALLOUT_ANY_START_RE = re.compile(r"^>\s*\[!", re.IGNORECASE)
 HEADING_RE = re.compile(r"^#{1,6}\s")
 FRONTMATTER_RE = re.compile(r"^---\n(.*?\n)---\n?", re.DOTALL)
+
+# A wikilink, but never an image embed (![[...]]). Groups: target, optional
+# #heading anchor, optional |alias. Both anchor and alias are preserved as-is.
+WIKILINK_RE = re.compile(r"(?<!!)\[\[([^\]|#]+)((?:#[^\]|]+)?)(\|[^\]]+)?\]\]")
+
+
+def build_link_table():
+    """Map an Obsidian source-page basename to its published slug, but ONLY
+    where the two differ.
+
+    A bilingual wiki names its source files `<page>.en.md` / `<page>.pt.md` so
+    they never collide in the shared vault, while publishing them at clean slugs
+    (`<page>`, `pt/<page>`). The source therefore links a sibling as
+    `[[gazetteer.en]]` (which resolves in Obsidian); this table rewrites that to
+    `[[gazetteer]]` on the way into content/, where the site resolves it.
+
+    A monolingual wiki's source basename already equals its slug, so every pair
+    is an identity and is dropped here: the table is empty and the body is copied
+    byte-for-byte unchanged. LINK_REWRITE (optional, per-wiki) adds targets that
+    have no synced source page, i.e. content-only stubs like the interactive map.
+    """
+    table = {}
+    for src_name, dest_rel in PAGE_MAP.items():
+        src_key = src_name[:-3]      # drop '.md' -> 'gazetteer.en'
+        dest_slug = dest_rel[:-3]    # drop '.md' -> 'gazetteer'
+        if src_key != dest_slug:
+            table[src_key] = dest_slug
+    table.update(LINK_REWRITE)
+    return table
+
+
+LINK_TABLE = build_link_table()
+
+
+def rewrite_wikilinks(body, table=None):
+    """Rewrite [[source-basename|alias]] links to their published slug per the
+    link table. Image embeds (![[...]]) and any target not in the table are left
+    untouched; the #heading anchor and |alias are preserved exactly. A no-op when
+    the table is empty (the monolingual case), so output stays byte-identical."""
+    if table is None:
+        table = LINK_TABLE
+    if not table:
+        return body
+
+    def repl(m):
+        target, anchor, alias = m.group(1), m.group(2), m.group(3)
+        slug = table.get(target)
+        if slug is None:
+            return m.group(0)
+        return f"[[{slug}{anchor}{alias or ''}]]"
+
+    return WIKILINK_RE.sub(repl, body)
 
 
 def split_frontmatter(text):
@@ -328,6 +388,7 @@ def sync_page(src_name, dest_rel):
     body = strip_meta_lines(body)
     body = drop_empty_headings(body)
     body = clean_blank_runs(body)
+    body = rewrite_wikilinks(body)
 
     dest = CONTENT_DIR / dest_rel
     marker_block = None
