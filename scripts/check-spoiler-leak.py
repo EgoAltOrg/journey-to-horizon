@@ -92,6 +92,14 @@ TIER2 = [
     r"\bkeeps something worse\b",
     r"\bbehind a barrier\b",
     r"\bprison wall\b",
+    # Perception-framing leak class: a line about how people *see* someone
+    # implies the truth is otherwise with no trigger word. Caught 2026-09-27 on
+    # Althas's Tobias Wren ("most read the wear on him as a long life given over
+    # to devotion"), after it had been live since the 2026-09-26 publish.
+    r"\b(most|many|others|people|everyone|all|few) (read|reads|take|takes|took|see|sees|saw|mistake|mistakes|mistook) (him|her|them|it|the \w+|his \w+|her \w+|their \w+)( \w+){0,4} (as|for)\b",
+    r"\bpass(es|ed)? for\b",
+    r"\bby all appearances\b",
+    r"\b(is|was|are|were) (taken|mistaken) for\b",
 ]
 
 TIER1_AUTHOR_RE = [re.compile(p, re.IGNORECASE) for p in TIER1_AUTHOR_MARKERS]

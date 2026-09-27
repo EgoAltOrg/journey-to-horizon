@@ -32,6 +32,16 @@ def test_tier2_secret_signals():
         assert t2, f"expected a Tier 2 hit in: {s!r}"
 
 
+def test_perception_framing_is_tier2():
+    # The exact 2026-09-27 Althas leak string must be caught (Tier 2).
+    leak = "his manner is gentle and unhurried, and most read the wear on him as a long life given over to devotion."
+    _, t2 = csl.scan_text(leak)
+    assert t2, "must catch perception framing ('most read ... as')"
+    for s in ["The old man passes for a hermit.", "By all appearances she is a widow."]:
+        _, t2 = csl.scan_text(s)
+        assert t2, f"expected a Tier 2 hit in: {s!r}"
+
+
 def test_clean_public_prose_passes():
     clean = (
         "The Holy See governs the faith from Hilltop and fields the Parish of "
