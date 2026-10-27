@@ -12,8 +12,8 @@ spec.loader.exec_module(csl)
 
 
 def test_catches_the_real_leak():
-    # The exact 2026-07-18 leak string must be caught (Tier 1).
-    leak = "said to let its bearer hold multiple Miracles (the truth is otherwise, and is GM-only)."
+    # The shape of the 2026-07-18 leak must be caught (Tier 1).
+    leak = "said to grant its bearer a long life (the truth is otherwise, and is GM-only)."
     t1, t2 = csl.scan_text(leak)
     phrases = {p for _, p in t1}
     assert "gm-only" in phrases, "must catch 'GM-only' author terminology"
@@ -33,8 +33,8 @@ def test_tier2_secret_signals():
 
 
 def test_perception_framing_is_tier2():
-    # The exact 2026-09-27 Althas leak string must be caught (Tier 2).
-    leak = "his manner is gentle and unhurried, and most read the wear on him as a long life given over to devotion."
+    # The shape of the 2026-09-27 leak must be caught (Tier 2).
+    leak = "his manner is quiet and patient, and most read the scars on him as the marks of an honest trade."
     _, t2 = csl.scan_text(leak)
     assert t2, "must catch perception framing ('most read ... as')"
     for s in ["The old man passes for a hermit.", "By all appearances she is a widow."]:

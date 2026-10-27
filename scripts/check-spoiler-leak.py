@@ -4,7 +4,7 @@ Spoiler-leak gate for the published player-facing wiki.
 
 WHY THIS EXISTS: on 2026-07-18 an author-side note reading "the truth is
 otherwise, and is GM-only" reached the live player site inside a public bullet
-on magic/miracles.md. It was NOT inside a [!gm-only] callout, so the sync's
+on a magic page. It was NOT inside a [!gm-only] callout, so the sync's
 strip could not catch it, and a human diff review missed the parenthetical.
 That class of leak (author terminology or secret-existence hints written into
 public prose) is catastrophic for a GM: it tells players a secret exists and
@@ -86,16 +86,16 @@ TIER2 = [
     r"\bin disguise\b",
     r"\bpretend(s|ing|ed)?\b",
     # Barrier/prison-wall leak class: a secret that a dangerous thing is held
-    # back behind a barrier (Codex's true source, the Ones Below seal). Caught
-    # live on 2026-08-07 in public codex-magic prose. Tight enough not to hit the
-    # in-world seal-grammar "Wall raises it as a barrier" dagger.
+    # back behind a barrier. Caught live on 2026-08-07 in public magic prose.
+    # Tight enough not to hit an in-world spell line such as "Wall raises it as
+    # a barrier".
     r"\bkeeps something worse\b",
     r"\bbehind a barrier\b",
     r"\bprison wall\b",
     # Perception-framing leak class: a line about how people *see* someone
-    # implies the truth is otherwise with no trigger word. Caught 2026-09-27 on
-    # Althas's Tobias Wren ("most read the wear on him as a long life given over
-    # to devotion"), after it had been live since the 2026-09-26 publish.
+    # implies the truth is otherwise with no trigger word ("most read the scars
+    # on him as the marks of an honest trade"). Caught 2026-09-27 on a public NPC
+    # page, after it had been live since the 2026-09-26 publish.
     r"\b(most|many|others|people|everyone|all|few) (read|reads|take|takes|took|see|sees|saw|mistake|mistakes|mistook) (him|her|them|it|the \w+|his \w+|her \w+|their \w+)( \w+){0,4} (as|for)\b",
     r"\bpass(es|ed)? for\b",
     r"\bby all appearances\b",

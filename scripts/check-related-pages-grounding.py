@@ -89,9 +89,9 @@ FRONTMATTER_RE = re.compile(r"^---\n(.*?\n)---\n?", re.DOTALL)
 # Frontmatter keys that are presentation/plumbing, never relational claims.
 FM_SKIP_KEYS = {"title", "aliases", "image", "image_caption", "marker", "submap"}
 
-# Cardinal-number words. A title like "The Seven" whose only word after the
+# Cardinal-number words. A title like "The Twelve" whose only word after the
 # article is a number must not be matched by that bare number in prose (see
-# title_pattern): "seven" appears in ordinary sentences ("five to seven feet").
+# title_pattern): "twelve" appears in ordinary sentences ("ten to twelve feet").
 NUMBER_WORDS = {
     "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
     "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
@@ -105,11 +105,11 @@ NUMBER_WORDS = {
 # only where the word is archaic enough never to appear in public prose by
 # accident, so matching its singular costs no false positives. 'The Threnodies'
 # qualifies (a threnody is an obscure funeral lament). A common-word secret like
-# 'Heresies' is deliberately NOT here: the singular 'heresy' is ordinary Church
-# vocabulary ('named the claim heresy', 'between faith and heresy') and the
-# public civil war 'Valerion's Heresy' is named across the live wiki, so a y-ies
-# rule there flagged 36 public lines (2026-09-04). The singular/plural split is
-# the firewall that keeps the secret 'Heresies' distinct from the public 'Heresy'.
+# 'Prophecies' is deliberately NOT a candidate: the singular 'prophecy' is
+# ordinary vocabulary, and a public event such as 'the Last Prophecy' may be
+# named across the live wiki, so a y-ies rule there flags public lines (one
+# wiki's version flagged 36, 2026-09-04). The singular/plural split is the
+# firewall that keeps a secret 'Prophecies' distinct from a public 'Prophecy'.
 EXTRA_TITLE_FORMS = {
     "the threnodies": ["threnody"],
 }
@@ -163,19 +163,20 @@ def title_pattern(title):
     grounds a link to Miracles; 'a giant' grounds Giants).
 
     There is no blanket y<->ies rule: matching an -ies plural to its -y singular
-    conflates entities the singular/plural split keeps apart (the secret
-    'Heresies' vs the public civil war 'Valerion's Heresy'). EXTRA_TITLE_FORMS
+    conflates entities the singular/plural split keeps apart (a secret
+    'Prophecies' vs a public 'Last Prophecy'). EXTRA_TITLE_FORMS
     instead opts a specific title into extra surface forms where its word is
     archaic enough to be a safe leak signal ('The Threnodies' also catches the
     singular 'threnody'); see that constant for the reasoning."""
     parts = re.split(r"[\s-]+", title.strip())
     variants = [parts]
     # Also match the title without its leading article ('The Hilltop Night Zone'
-    # -> 'Hilltop Night Zone', 'The Stargazers' -> bare 'stargazer' so a leaked
-    # "Castorius is a stargazer" is caught). The one exception: a single-word
-    # remainder that is a NUMBER ('The Seven' -> 'seven') would match the number
-    # in ordinary prose ('five to seven feet', 'seven days'), a false positive
-    # that blocks every publish, so 'The Seven' requires its article. This is
+    # -> 'Hilltop Night Zone', 'The Lamplighters' -> bare 'lamplighter' so a
+    # leaked "the abbot is a lamplighter" is caught). The one exception: a
+    # single-word remainder that is a NUMBER ('The Twelve' -> 'twelve') would
+    # match the number in ordinary prose ('ten to twelve feet', 'twelve days'),
+    # a false positive that blocks every publish, so 'The Twelve' requires its
+    # article. This is
     # the only remainder class common enough in prose to warrant the exception;
     # distinctive proper nouns keep their bare-word leak matching.
     if parts and parts[0].lower() == "the" and len(parts) > 1:

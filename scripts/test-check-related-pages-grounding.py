@@ -15,35 +15,35 @@ spec.loader.exec_module(grd)
 
 
 def test_number_remainder_requires_article():
-    # 'The Seven' must NOT reduce to the bare number 'seven': the 2026-09-04
+    # 'The Twelve' must NOT reduce to the bare number 'twelve': the 2026-09-04
     # false positives that this fix targets.
-    p = grd.title_pattern("The Seven")
-    assert not p.search("firbolg stand five to seven feet tall"), \
-        "'The Seven' must not match the number 'seven' in prose"
-    assert not p.search("the ritual lasts seven days"), \
-        "'The Seven' must not match 'seven days'"
+    p = grd.title_pattern("The Twelve")
+    assert not p.search("the oaks stand ten to twelve feet tall"), \
+        "'The Twelve' must not match the number 'twelve' in prose"
+    assert not p.search("the ritual lasts twelve days"), \
+        "'The Twelve' must not match 'twelve days'"
 
 
 def test_number_remainder_still_matches_with_article():
     # The canonical name still grounds a real mention (leak detection intact).
-    p = grd.title_pattern("The Seven")
-    assert p.search("the Seven convened in secret"), \
-        "'The Seven' must still match 'the Seven'"
-    assert p.search("The Seven ruled from the shadows"), \
-        "'The Seven' must still match 'The Seven'"
+    p = grd.title_pattern("The Twelve")
+    assert p.search("the Twelve convened in secret"), \
+        "'The Twelve' must still match 'the Twelve'"
+    assert p.search("The Twelve ruled from the shadows"), \
+        "'The Twelve' must still match 'The Twelve'"
 
 
 def test_distinctive_single_word_secret_keeps_bare_word_match():
     # The rule-29 regression guard: a distinctive single-word 'The X' secret
-    # ('The Stargazers', where Castorius is secretly a Stargazer) MUST still be
+    # (a hidden faction such as 'The Lamplighters') MUST still be
     # caught by its bare word in prose. Only NUMBER remainders lose this; a
     # proper noun stays a leak signal, since a false positive here safely blocks
     # a publish while a false negative leaks a secret (rule 29).
     for title, leak in [
-        ("The Stargazers", "Castorius is a stargazer"),
-        ("The Observers", "one of the tower's observers slipped away"),
+        ("The Lamplighters", "the abbot is a lamplighter"),
+        ("The Cartographers", "one of the tower's cartographers slipped away"),
         ("The Threnodies", "chanting the old threnodies aloud"),
-        ("The Threnodites", "the last threnodite fell"),
+        ("The Ashwardens", "the last ashwarden fell"),
     ]:
         assert grd.title_pattern(title).search(leak), \
             f"{title!r} must still flag a bare-word leak: {leak!r}"
@@ -63,9 +63,9 @@ def test_threnodies_opts_into_its_singular():
 def test_multi_word_number_title_still_drops_article():
     # The number exception is single-word-remainder ONLY: a multi-word remainder
     # that happens to contain a number still drops its article normally.
-    p = grd.title_pattern("The Seven Sisters")
-    assert p.search("they fled to Seven Sisters"), \
-        "'The Seven Sisters' must still match without its article"
+    p = grd.title_pattern("The Twelve Sisters")
+    assert p.search("they fled to Twelve Sisters"), \
+        "'The Twelve Sisters' must still match without its article"
 
 
 def test_multi_word_title_still_matches_without_article():
@@ -95,15 +95,15 @@ def test_trailing_s_tolerance_preserved():
 
 
 def test_plural_title_does_not_match_singular_across_the_firewall():
-    # The singular/plural split separates the secret 'Heresies' from the public
-    # civil war 'Valerion's Heresy'. Matching the -ies plural to its -y singular
-    # would flag every public mention of the Heresy as a leak (36 lines on
+    # The singular/plural split separates a secret 'Prophecies' from a public
+    # 'Last Prophecy'. Matching the -ies plural to its -y singular would flag
+    # every public mention of the Prophecy as a leak (36 lines on one wiki,
     # 2026-09-04), so the matcher stays deliberately NOT y<->ies aware.
-    p = grd.title_pattern("Heresies")
-    assert not p.search("the aftermath of Valerion's Heresy"), \
-        "'Heresies' must NOT match the public singular 'Heresy'"
-    assert p.search("the northern heresies spread"), \
-        "'Heresies' must still match its own plural 'heresies'"
+    p = grd.title_pattern("Prophecies")
+    assert not p.search("the aftermath of the Last Prophecy"), \
+        "'Prophecies' must NOT match the public singular 'Prophecy'"
+    assert p.search("the northern prophecies spread"), \
+        "'Prophecies' must still match its own plural 'prophecies'"
 
 
 # --- bilingual resolver + title map (the 2026-09-12 /pt/ generalization) ---
