@@ -26,13 +26,19 @@ quartz/util/path.ts and a matching patch in check-broken-links.py; keep both
 patches if you use folder-is-the-page.
 """
 import re
+import shutil
 import sys
 from pathlib import Path
 
-# All wiki-specific data lives in sync_config.py (the one file a wiki edits).
-# Add this script's own dir to the path so the import works whether run directly
-# or loaded by a gate via importlib (e.g. check-related-pages-grounding.py).
+# All wiki-specific data lives in sync_config.py (the one file a wiki edits),
+# found through wiki_config.py: next to this script by default, or in the folder
+# WIKI_CONFIG_DIR names. Both dirs go on the path so the imports work whether
+# this runs directly or is loaded by a gate via importlib (e.g.
+# check-related-pages-grounding.py).
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from wiki_config import CONFIG_DIR, shortest_key  # noqa: E402
+
+sys.path.insert(0, str(CONFIG_DIR))
 from sync_config import (  # noqa: E402
     ONTOS_SETTING,
     TITLES,
@@ -51,6 +57,14 @@ try:
 except ImportError:
     LINK_REWRITE = {}
 
+# Optional per-wiki knob: the folder a brand-new page's leading portrait embed
+# is copied in from (see seed_portrait). Wikis that place every image by hand
+# omit it, and new pages then publish without an image: until one is placed.
+try:
+    from sync_config import PORTRAIT_DIR  # noqa: E402
+except ImportError:
+    PORTRAIT_DIR = None
+
 CONTENT_DIR = Path(__file__).resolve().parent.parent / "content"
 
 CALLOUT_START_RE = re.compile(r"^>\s*\[!(gm-only|gm-notes)\]", re.IGNORECASE)
@@ -67,7 +81,7 @@ WIKILINK_RE = re.compile(r"(?<!!)\[\[([^\]|#]+)((?:#[^\]|]+)?)(\|[^\]]+)?\]\]")
 
 def build_link_table():
     """Map an Obsidian source-page basename to its published slug, but ONLY
-    where the two differ.
+    where the page's file name changes on the way out.
 
     A bilingual wiki names its source files `<page>.en.md` / `<page>.pt.md` so
     they never collide in the shared vault, while publishing them at clean slugs
@@ -75,16 +89,22 @@ def build_link_table():
     `[[gazetteer.en]]` (which resolves in Obsidian); this table rewrites that to
     `[[gazetteer]]` on the way into content/, where the site resolves it.
 
-    A monolingual wiki's source basename already equals its slug, so every pair
-    is an identity and is dropped here: the table is empty and the body is copied
-    byte-for-byte unchanged. LINK_REWRITE (optional, per-wiki) adds targets that
-    have no synced source page, i.e. content-only stubs like the interactive map.
+    A monolingual wiki publishes most pages under their source file name, even
+    when it files one into a folder (`infernis.md` -> `ancestries/infernis.md`)
+    or makes it a folder's own page (`polaris.md` -> `locations/polaris/
+    index.md`), and Quartz resolves the bare `[[infernis]]` / `[[polaris]]` by
+    that name. Those pairs add nothing here, so their links are copied
+    byte-for-byte. Only a page published under a different name than its source
+    file (a stub source renamed on the way out) gets an entry, which turns a
+    link to the source name into a working link instead of a dangling one.
+    LINK_REWRITE (optional, per-wiki) adds targets that have no synced source
+    page, i.e. content-only stubs like the interactive map.
     """
     table = {}
     for src_name, dest_rel in PAGE_MAP.items():
         src_key = src_name[:-3]      # drop '.md' -> 'gazetteer.en'
         dest_slug = dest_rel[:-3]    # drop '.md' -> 'gazetteer'
-        if src_key != dest_slug:
+        if src_key != shortest_key(dest_slug):
             table[src_key] = dest_slug
     table.update(LINK_REWRITE)
     return table
@@ -331,6 +351,40 @@ def strip_leading_image(body):
     return "\n".join(new_lines), caption
 
 
+# A portrait embed: `![[name.jpg]]` or `![[name.jpg|320]]`, image files only.
+PORTRAIT_RE = re.compile(r"^!\[\[(\w[\w .'-]*\.(?:png|jpe?g|webp|gif|avif))(?:\|\d+)?\]\]$", re.IGNORECASE)
+MISSING_PORTRAITS = []
+
+
+def leading_portrait(raw_body):
+    """The portrait filename if the very first line of the source body, read
+    BEFORE the gm-strip, is a portrait embed. An image anywhere below a callout,
+    even one written without `>`, never qualifies."""
+    for line in raw_body.splitlines():
+        if line.strip():
+            m = PORTRAIT_RE.match(line.strip())
+            return m.group(1) if m else None
+    return None
+
+
+def seed_portrait(filename):
+    """A brand-new page has no content/ file to carry image: from, so take it
+    from the source's leading portrait, copying the file in from PORTRAIT_DIR.
+    Fixed 2026-10-07: the filename used to be thrown away, so every new page
+    published without its portrait."""
+    if PORTRAIT_DIR is None:
+        return None
+    art = Path(PORTRAIT_DIR) / filename
+    if not art.is_file():
+        MISSING_PORTRAITS.append(filename)
+        return None
+    assets = CONTENT_DIR / "assets"
+    assets.mkdir(parents=True, exist_ok=True)
+    if not (assets / filename).exists():
+        shutil.copy2(art, assets / filename)
+    return f"image: {filename}"
+
+
 def render(
     title, marker_block, body, image_block=None, infobox_lines=None, submap_block=None,
     alias_slugs=None, image_caption=None, current_date=None,
@@ -383,6 +437,7 @@ def sync_page(src_name, dest_rel):
     src_fm, body = split_frontmatter(text)
     infobox_lines = extract_infobox_fields(src_fm)
     current_date = extract_current_date(src_fm)
+    portrait = leading_portrait(body)
     body = strip_callouts(body)
     body, image_caption = strip_leading_image(body)
     body = strip_meta_lines(body)
@@ -400,6 +455,8 @@ def sync_page(src_name, dest_rel):
         marker_block = extract_marker_block(existing_fm)
         submap_block = extract_submap_block(existing_fm)
         image_block = extract_image_block(existing_fm)
+    if carry_src is None and portrait:
+        image_block = seed_portrait(portrait)
 
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(
@@ -429,6 +486,12 @@ def main():
     print(f"\nContent-only (hand-maintained in content/, not synced; already live):")
     for name in sorted(CONTENT_ONLY):
         print(f"  {name}")
+
+    if MISSING_PORTRAITS:
+        print(f"\nERROR: new page portrait(s) not found in {PORTRAIT_DIR}, so the page has no image:")
+        for name in MISSING_PORTRAITS:
+            print(f"  {name}")
+        return 1
     return 0
 
 

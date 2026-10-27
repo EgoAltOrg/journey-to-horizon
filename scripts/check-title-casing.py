@@ -27,12 +27,20 @@ import re
 import sys
 from pathlib import Path
 
+from wiki_config import CONFIG_DIR
+
 CONTENT = Path(__file__).resolve().parent.parent / "content"
 
 # Titles that are also ordinary common nouns and are correctly lowercased
 # mid-sentence ("a flock of faeries"), matching how their own page writes them.
-# The proper-noun casing gate is skipped for these slugs.
-COMMON_NOUN_SLUGS = {"aetheris", "elves"}
+# The proper-noun casing gate is skipped for these slugs. Each wiki lists its
+# own in sync_config.py (COMMON_NOUN_SLUGS, optional), from the same config
+# dir sync-from-ontos.py uses. The config itself must load: a missing one stops
+# the gate instead of flagging every common-noun link as a casing slip.
+sys.path.insert(0, str(CONFIG_DIR))
+import sync_config  # noqa: E402
+
+COMMON_NOUN_SLUGS = getattr(sync_config, "COMMON_NOUN_SLUGS", set())
 TITLE_RE = re.compile(r"^title:\s*(.+?)\s*$", re.MULTILINE)
 # [[target|display]] or [[target]] ; target may carry a path and/or #anchor
 WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]")

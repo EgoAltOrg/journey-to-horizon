@@ -262,6 +262,139 @@ def test_sync_page_carries_image_across_a_rename(tmp_path):
     assert "New body from the source." in body, "new source body not synced"
 
 
+def _sync_one(root, src_text, dest_text=None, asset_name=None, portrait_dir=True):
+    """Run sync_page for one page in a throwaway campaign tree: the source lives
+    in campaign/setting/, an optional portrait in campaign/raw/character-art/
+    (the PORTRAIT_DIR, unless portrait_dir=False turns seeding off), and an
+    optional existing destination in content/npcs/."""
+    setting = root / "campaign" / "setting"
+    art = root / "campaign" / "raw" / "character-art"
+    content = root / "content"
+    setting.mkdir(parents=True, exist_ok=True)
+    (content / "npcs").mkdir(parents=True, exist_ok=True)
+    (setting / "thea.md").write_text(src_text)
+    if asset_name:
+        art.mkdir(parents=True, exist_ok=True)
+        (art / asset_name).write_bytes(b"portrait")
+    if dest_text:
+        (content / "npcs/thea.md").write_text(dest_text)
+    saved = (sync.ONTOS_SETTING, sync.CONTENT_DIR, sync.PAGE_MAP, sync.TITLES, sync.RENAMES, sync.PORTRAIT_DIR)
+    try:
+        sync.ONTOS_SETTING = setting
+        sync.CONTENT_DIR = content
+        sync.PAGE_MAP = {"thea.md": "npcs/thea.md"}
+        sync.TITLES = {"thea.md": "Thea"}
+        sync.RENAMES = {}
+        sync.PORTRAIT_DIR = art if portrait_dir else None
+        dest = sync.sync_page("thea.md", "npcs/thea.md")
+    finally:
+        (sync.ONTOS_SETTING, sync.CONTENT_DIR, sync.PAGE_MAP, sync.TITLES, sync.RENAMES, sync.PORTRAIT_DIR) = saved
+    fm, body = sync.split_frontmatter(dest.read_text())
+    return fm, body, content
+
+
+def test_new_page_seeds_image_from_source_portrait(tmp_path):
+    """The 2026-10-07 bug: a brand-new page's leading portrait embed was
+    stripped and its filename thrown away, so the page published with no
+    portrait. A new page now takes image: from that embed and gets the file
+    copied into content/assets/."""
+    fm, body, content = _sync_one(
+        tmp_path,
+        "---\ntitle: Thea\nkind: person\n---\n\n![[thea.jpg|320]]\n\nBody.\n",
+        asset_name="thea.jpg",
+    )
+    assert sync.extract_image_block(fm) == "image: thea.jpg", "portrait not seeded"
+    assert (content / "assets" / "thea.jpg").read_bytes() == b"portrait", "asset not copied"
+    assert "thea.jpg" not in body, "leading embed left in the body"
+
+
+def test_no_portrait_dir_means_no_seeding(tmp_path):
+    """A wiki without PORTRAIT_DIR places every image by hand: the leading
+    embed is still stripped, but nothing is seeded or copied."""
+    fm, body, content = _sync_one(
+        tmp_path,
+        "---\ntitle: Thea\nkind: person\n---\n\n![[thea.jpg|320]]\n\nBody.\n",
+        asset_name="thea.jpg",
+        portrait_dir=False,
+    )
+    assert sync.extract_image_block(fm) is None
+    assert not (content / "assets").exists()
+    assert "thea.jpg" not in body
+
+
+def test_existing_image_wins_over_source_portrait(tmp_path):
+    """Once a page is published, content/'s image: stays authoritative
+    (rule 26): a re-sync never swaps it for the source embed."""
+    fm, _, content = _sync_one(
+        tmp_path,
+        "---\ntitle: Thea\nkind: person\n---\n\n![[new.jpg|320]]\n\nBody.\n",
+        dest_text="---\ntitle: Thea\nimage: old.png\n---\n\nOld.\n",
+        asset_name="new.jpg",
+    )
+    assert sync.extract_image_block(fm) == "image: old.png"
+    assert not (content / "assets" / "new.jpg").exists(), "copied an unused asset"
+
+
+def test_gm_only_portrait_is_never_seeded(tmp_path):
+    """A portrait inside a gm-only callout is stripped before the leading-image
+    check, so it can never become a public image: or a copied asset."""
+    fm, _, content = _sync_one(
+        tmp_path,
+        "---\ntitle: Thea\nkind: person\n---\n\n> [!gm-only] Secret\n> ![[secret.jpg|320]]\n\nBody.\n",
+        asset_name="secret.jpg",
+    )
+    assert sync.extract_image_block(fm) is None
+    assert not (content / "assets" / "secret.jpg").exists()
+
+
+def test_image_lazily_continuing_a_gm_callout_is_never_seeded(tmp_path):
+    """An embed written without `>` straight under a gm-only callout renders
+    inside the callout in Obsidian but survives the strip. It must not become
+    the public portrait."""
+    fm, body, content = _sync_one(
+        tmp_path,
+        "---\ntitle: Thea\nkind: person\n---\n\n> [!gm-only] Secret\n> text\n![[secret.jpg]]\n\nBody.\n",
+        asset_name="secret.jpg",
+    )
+    assert sync.extract_image_block(fm) is None
+    assert not (content / "assets" / "secret.jpg").exists()
+
+
+def test_non_image_leading_embed_is_never_seeded(tmp_path):
+    """A leading transclusion of a note or a PDF is not a portrait."""
+    for embed in ("![[thea.md]]", "![[handout.pdf]]"):
+        fm, _, content = _sync_one(
+            tmp_path, f"---\ntitle: Thea\nkind: person\n---\n\n{embed}\n\nBody.\n"
+        )
+        assert sync.extract_image_block(fm) is None, embed
+        assert not (content / "assets").exists(), embed
+
+
+def test_published_page_without_image_is_left_alone(tmp_path):
+    """Seeding is for brand-new pages only: a page already in content/ that has
+    no image: keeps having none, whatever its source embeds."""
+    fm, _, content = _sync_one(
+        tmp_path,
+        "---\ntitle: Thea\nkind: person\n---\n\n![[thea.jpg|320]]\n\nBody.\n",
+        dest_text="---\ntitle: Thea\n---\n\nOld.\n",
+        asset_name="thea.jpg",
+    )
+    assert sync.extract_image_block(fm) is None
+    assert not (content / "assets" / "thea.jpg").exists()
+
+
+def test_missing_portrait_is_reported(tmp_path):
+    """A new page whose portrait file is not in PORTRAIT_DIR gets no image:
+    and is recorded, so main() can fail the sync loudly."""
+    sync.MISSING_PORTRAITS.clear()
+    fm, _, _ = _sync_one(
+        tmp_path, "---\ntitle: Thea\nkind: person\n---\n\n![[nowhere.jpg|320]]\n\nBody.\n"
+    )
+    assert sync.extract_image_block(fm) is None
+    assert sync.MISSING_PORTRAITS == ["nowhere.jpg"]
+    sync.MISSING_PORTRAITS.clear()
+
+
 def main():
     import inspect
     import shutil

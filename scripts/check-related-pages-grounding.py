@@ -42,9 +42,11 @@ moves into [!gm-only] in the Ontos source or joins the allowlist is exactly
 the judgment call a human owns (root CLAUDE.md rule 25). Exits non-zero on
 any FAIL, mirroring check-infobox-fields.py, so it can gate the publish.
 
-Allowlist (scripts/related-pages-allowlist.json): human-owned exceptions,
-small enough to review during every publish; unused entries are reported so
-it never silently accumulates. Structure:
+Allowlist (related-pages-allowlist.json, in scripts/ or, for a wiki whose
+config stays out of the public repo, in the WIKI_CONFIG_DIR folder; never in
+both, see wiki_config.py): human-owned exceptions, small enough to review
+during every publish; unused entries are reported so it never silently
+accumulates. Structure:
   {
     "hub_targets":  ["diplomacy", ...],   // site-wide overview/utility pages
                                           // any page may link without grounding
@@ -67,12 +69,16 @@ import re
 import sys
 from pathlib import Path
 
+from wiki_config import config_path, shortest_key
+
 SCRIPTS_DIR = Path(__file__).resolve().parent
 DEFAULT_CONTENT = SCRIPTS_DIR.parent / "content"
-DEFAULT_ALLOWLIST = SCRIPTS_DIR / "related-pages-allowlist.json"
+DEFAULT_ALLOWLIST = config_path("related-pages-allowlist.json")
 
 # Same target regex family as check-broken-links.py (handles table-escaped \|).
 LINK_RE = re.compile(r"\[\[([^\]|#\\]+)(\\?\|([^\]]+))?\]\]")
+# Just a wikilink's target, whatever follows it (alias, escaped pipe, #anchor).
+LINK_TARGET_RE = re.compile(r"\[\[([^\]|#\\]+)")
 # Related-pages heading in every language a wiki publishes: the grounding
 # (spoiler) check only fires on links UNDER this heading, so a language whose
 # heading is missing here would silently escape the gate. Add each new
@@ -101,7 +107,9 @@ NUMBER_WORDS = {
 }
 
 # Extra surface forms to also flag for a specific secret title (keyed by the
-# lowercased title). Opt-in per entity, NOT a blanket morphological rule: use it
+# lowercased title). Each wiki fills these in its sync_config.py
+# (EXTRA_TITLE_FORMS, optional); main() merges them in. Opt-in per entity, NOT
+# a blanket morphological rule: use it
 # only where the word is archaic enough never to appear in public prose by
 # accident, so matching its singular costs no false positives. 'The Threnodies'
 # qualifies (a threnody is an obscure funeral lament). A common-word secret like
@@ -110,9 +118,7 @@ NUMBER_WORDS = {
 # named across the live wiki, so a y-ies rule there flags public lines (one
 # wiki's version flagged 36, 2026-09-04). The singular/plural split is the
 # firewall that keeps a secret 'Prophecies' distinct from a public 'Prophecy'.
-EXTRA_TITLE_FORMS = {
-    "the threnodies": ["threnody"],
-}
+EXTRA_TITLE_FORMS = {}
 
 
 def load_sync_module():
@@ -206,15 +212,6 @@ def render_links(text):
     return LINK_RE.sub(lambda m: (m.group(3) or m.group(1)).strip(), text)
 
 
-def _shortest_key(slug):
-    """The last path segment a Quartz "shortest" match compares against, with
-    a folder's own index.md standing in for its parent folder name."""
-    parts = slug.split("/")
-    if parts[-1] == "index" and len(parts) >= 2:
-        return parts[-2]
-    return parts[-1]
-
-
 def resolve_slug(target, slugs, slug_set):
     """Resolve an Obsidian wikilink target to a content slug the way Quartz's
     markdownLinkResolution:"shortest" does (quartz/util/path.ts, transformLink):
@@ -239,7 +236,7 @@ def resolve_slug(target, slugs, slug_set):
         return None
     if is_folder:
         return f"{canonical}/index" if f"{canonical}/index" in slug_set else None
-    matches = [s for s in slugs if _shortest_key(s) == canonical]
+    matches = [s for s in slugs if shortest_key(s) == canonical]
     if len(matches) == 1:
         return matches[0]
     if canonical in slug_set:
@@ -313,12 +310,30 @@ class Page:
         self.corpus_rendered = render_links(self.corpus_raw + "\n" + fields_text)
         self.prose_rendered = render_links(self.corpus_raw)
         self.folder = str(Path(self.rel).parent).replace("\\", "/")
+        self._link_index = None
+
+    def _links(self, slugs, slug_set):
+        """This page's prose wikilinks, worked out once per run: the targets as
+        written (lowercased) and the slugs they resolve to."""
+        if self._link_index is None:
+            raw = {m.group(1).strip() for m in LINK_TARGET_RE.finditer(self.corpus_raw)}
+            written = {link.strip("/").lower() for link in raw}
+            resolved = {resolve_slug(link, slugs, slug_set) for link in raw} - {None}
+            self._link_index = (written, resolved)
+        return self._link_index
 
     def _names(self, target, titles_by_slug, slugs, slug_set, prose_only=False):
         """Does THIS page's own public content (prose + visible infobox values,
         outside the claim surfaces) name the given target, by wikilink or title?
+        A wikilink counts when it resolves to the same page the target does,
+        however either is written: on a wiki that files pages into folders,
+        [[human]] and [[ancestries/human]] are one page.
         prose_only=True excludes infobox values."""
-        if re.search(r"\[\[" + re.escape(target) + r"(\]\]|\\?\||#)", self.corpus_raw, re.IGNORECASE):
+        written, resolved = self._links(slugs, slug_set)
+        if target.strip().strip("/").lower() in written:
+            return True
+        want = resolve_slug(target, slugs, slug_set)
+        if want and want in resolved:
             return True
         title = resolve_title(target, titles_by_slug, slugs, slug_set)
         corpus = self.prose_rendered if prose_only else self.corpus_rendered
@@ -398,7 +413,7 @@ def main():
     ap.add_argument("--content-dir", type=Path, default=DEFAULT_CONTENT,
                     help="content/ folder to scan (default: repo's)")
     ap.add_argument("--allowlist", type=Path, default=DEFAULT_ALLOWLIST,
-                    help="allowlist JSON (default: scripts/related-pages-allowlist.json)")
+                    help="allowlist JSON (default: related-pages-allowlist.json in the config dir)")
     args = ap.parse_args()
     content_dir = args.content_dir.resolve()
 
@@ -411,6 +426,7 @@ def main():
     used_allowlist = set()
 
     sync_mod = load_sync_module()
+    EXTRA_TITLE_FORMS.update(getattr(sys.modules["sync_config"], "EXTRA_TITLE_FORMS", {}))
     titles_by_slug, slug_folders, slugs, slug_set = build_title_map(content_dir)
     secrets = secret_matchers(sync_mod, public_names)
 
@@ -466,15 +482,21 @@ def main():
         # SECRET name in a field is caught by check 3 above, which scans the
         # whole file. prose_only: a field value never grounds its own claim.
         for key, value in page.fields.items():
-            claim_slugs = {m.group(1).strip().lower() for m in LINK_RE.finditer(value)}
+            # One claim per page, keyed by the slug it resolves to (so a linked
+            # entity whose title also appears in the value counts once) and
+            # reported as written (a link's own target, or a title's slug).
+            claims = {}
+            for m in LINK_RE.finditer(value):
+                written = m.group(1).strip().lower()
+                claims.setdefault(resolve_slug(written, slugs, slug_set) or written, written)
             rendered_value = render_links(value)
             for slug, title in titles_by_slug.items():
-                if slug in page.self_slugs or slug in claim_slugs:
+                if slug in page.self_slugs or slug in claims:
                     continue
                 if title_pattern(title).search(rendered_value):
-                    claim_slugs.add(slug)
-            for slug in sorted(claim_slugs):
-                if slug in page.self_slugs or slug in hub_targets:
+                    claims[slug] = slug
+            for resolved, slug in sorted(claims.items(), key=lambda kv: kv[1]):
+                if resolved in page.self_slugs or slug in page.self_slugs or slug in hub_targets:
                     continue
                 if slug in page_allow:
                     used_allowlist.add((page.rel, slug))

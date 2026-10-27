@@ -21,6 +21,8 @@ import re
 import sys
 from pathlib import Path
 
+from wiki_config import shortest_key
+
 CONTENT_DIR = Path(__file__).resolve().parent.parent / "content"
 # A wikilink inside a markdown table escapes its pipe as \| (Quartz renders
 # that correctly), so the target group must not swallow the backslash and the
@@ -36,16 +38,6 @@ def is_embed(line, match_start):
     target isn't a page. `![[hesper.jpg|320]]` is a real, working embed
     even though there's no hesper.jpg.md anywhere."""
     return match_start > 0 and line[match_start - 1] == "!"
-
-
-def _shortest_key(slug):
-    """The last path segment a Quartz "shortest" match compares against, with
-    a folder's own index.md standing in for its parent folder name (so
-    [[armada]] can resolve to locations/armada/index.md)."""
-    parts = slug.split("/")
-    if parts[-1] == "index" and len(parts) >= 2:
-        return parts[-2]
-    return parts[-1]
 
 
 def resolve_target(target, slugs, slug_set):
@@ -74,7 +66,7 @@ def resolve_target(target, slugs, slug_set):
     if is_folder:
         # [[world/]] -> Quartz emits /world/ and serves only world/index.
         return f"{canonical}/index" if f"{canonical}/index" in slug_set else None
-    matches = [s for s in slugs if _shortest_key(s) == canonical]
+    matches = [s for s in slugs if shortest_key(s) == canonical]
     if len(matches) == 1:
         return matches[0]
     if canonical in slug_set:

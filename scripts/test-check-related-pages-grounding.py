@@ -50,14 +50,20 @@ def test_distinctive_single_word_secret_keeps_bare_word_match():
 
 
 def test_threnodies_opts_into_its_singular():
-    # 'The Threnodies' is opted into its singular via EXTRA_TITLE_FORMS: a
-    # threnody is an obscure funeral lament, so matching 'threnody' costs no
-    # false positives (it appears nowhere in public prose) while catching a
-    # singular-form leak. The secret_matchers path derives the title as the
-    # lowercase 'the threnodies', so probe that form too.
-    for title in ("The Threnodies", "the threnodies"):
-        assert grd.title_pattern(title).search("a single threnody survived"), \
-            f"{title!r} must catch the opted-in singular 'threnody'"
+    # A wiki can opt 'The Threnodies' into its singular via its sync_config's
+    # EXTRA_TITLE_FORMS: a threnody is an obscure funeral lament, so matching
+    # 'threnody' costs no false positives while catching a singular-form leak.
+    # The secret_matchers path derives the title as the lowercase
+    # 'the threnodies', so probe that form too.
+    assert not grd.title_pattern("The Threnodies").search("a single threnody survived"), \
+        "without the opt-in, the singular must not match"
+    grd.EXTRA_TITLE_FORMS["the threnodies"] = ["threnody"]
+    try:
+        for title in ("The Threnodies", "the threnodies"):
+            assert grd.title_pattern(title).search("a single threnody survived"), \
+                f"{title!r} must catch the opted-in singular 'threnody'"
+    finally:
+        grd.EXTRA_TITLE_FORMS.pop("the threnodies")
 
 
 def test_multi_word_number_title_still_drops_article():

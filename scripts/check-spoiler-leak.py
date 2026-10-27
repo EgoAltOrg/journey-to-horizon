@@ -21,8 +21,10 @@ TWO TIERS:
     Always a hard finding. NOT allowlistable, by design.
   - TIER 2 (secret-signaling phrases): language that MIGHT signal a hidden
     secret ("secretly", "in reality", "not public", ...). A finding unless the
-    exact (file, matched-phrase) pair is cleared in
-    scripts/spoiler-leak-allowlist.json with a human-written reason.
+    exact (file, matched-phrase) pair is cleared in the wiki's
+    spoiler-leak-allowlist.json with a human-written reason. That file sits in
+    scripts/, or in the WIKI_CONFIG_DIR folder for a wiki whose config stays
+    out of the public repo (see wiki_config.py); never in both.
 
 Exit 1 on any finding, no --fix: clearing a spoiler is a human judgment call.
 Run from the repo root: python3 scripts/check-spoiler-leak.py
@@ -32,8 +34,10 @@ import re
 import sys
 from pathlib import Path
 
+from wiki_config import config_path
+
 CONTENT = Path(__file__).resolve().parent.parent / "content"
-ALLOWLIST_PATH = Path(__file__).resolve().parent / "spoiler-leak-allowlist.json"
+ALLOWLIST_PATH = config_path("spoiler-leak-allowlist.json")
 
 # Author-side terminology and secret-existence markers. Zero legitimate use in
 # player-facing prose on ANY wiki, so these are never allowlistable and never
@@ -47,6 +51,11 @@ TIER1_AUTHOR_MARKERS = [
     r"\bnot for (the )?players\b",
     r"\bdo\s?n[’']?t reveal\b",
     r"\breveal(ed)? to (the )?players\b",
+    # Hyphenated jargon spellings only: the spaced forms are ordinary English
+    # ("out of character for the duke") and live in Tier 2.
+    r"\bin-fiction\b",
+    r"\bout-of-character\b",
+    r"\bdesign pass\b",
 ]
 
 # The GM named as a role/person. On a single-GM, secret-heavy wiki (Althas) this
@@ -61,6 +70,10 @@ TIER1_GM_ROLE = [
     r"\bgame master\b",
     r"\bdungeon master\b",
 ]
+
+# Object slot for the perception-framing patterns below: a pronoun or a short
+# determiner phrase ("the wear", "these duels").
+_OBJ = r"(?:him|her|them|it|(?:the|this|that|these|those|his|her|their|its) \w+)"
 
 # Secret-signaling phrases. Real leaks look like these, but so does some
 # legitimate in-world prose ("a hole in reality"), so each hit is cleared only
@@ -95,11 +108,54 @@ TIER2 = [
     # Perception-framing leak class: a line about how people *see* someone
     # implies the truth is otherwise with no trigger word ("most read the scars
     # on him as the marks of an honest trade"). Caught 2026-09-27 on a public NPC
-    # page, after it had been live since the 2026-09-26 publish.
-    r"\b(most|many|others|people|everyone|all|few) (read|reads|take|takes|took|see|sees|saw|mistake|mistakes|mistook) (him|her|them|it|the \w+|his \w+|her \w+|their \w+)( \w+){0,4} (as|for)\b",
+    # page, after it had been live since the 2026-09-26 publish. That first
+    # version hard-coded seven subjects (most, many, others, ...), so six live
+    # lines found 2026-09-30 slipped through (shapes like "the faithful read it
+    # as", "a match the city reads as", "passes off as", "as the court
+    # believes", "in the eyes of", "the rest is held"). The "as" forms are
+    # therefore subject-agnostic too, each kept tight in its own way:
+    #   - the subject-anchored original (any verb, any object) stays first, so
+    #     its matches keep their old phrase;
+    #   - read/see/mistake + a real object, any subject;
+    #   - take + a bare pronoun directly before "as" ("took him as"), so
+    #     succession prose ("took the throne as regent", "took her place as
+    #     head") does not flag;
+    #   - a fronted object ("a match the city reads as", "who reads as"),
+    #     where "reads as follows/such/well" is prose; "as well-born" is not.
+    r"\b(?:(?:most|many|others|people|everyone|all|few) (?:read|reads|take|takes|took|see|sees|saw|mistake|mistakes|mistook) "
+    + _OBJ
+    + r"(?: \w+){0,4} as\b|(?:read|reads|see|sees|saw|mistake|mistakes|mistook) "
+    + _OBJ
+    + r"(?: \w+){0,4} as\b|(?:take|takes|took) (?:him|her|them|it) as\b"
+    + r"|(?:who reads?|reads|sees) as\b(?! (?:follows|such|well(?!-))\b))",
+    # "for" forms: the subject-anchored original, plus "take him for" and
+    # "mistook <someone> for" with any subject. Read/see + "for" stays
+    # subject-anchored: "see that page for" and "read the ground for" are prose.
+    # With any subject, "took it for granted" is an idiom, not framing; with a
+    # perceiver subject ("Most took it for granted that...") it stays flagged.
+    r"\b(?:(?:most|many|others|people|everyone|all|few) (?:read|reads|take|takes|took|see|sees|saw|mistake|mistakes|mistook) "
+    + _OBJ
+    + r"(?: \w+){0,4} for\b|(?:take|takes|took) (?:him|her|them|it) for\b(?! granted\b)|(?:mistake|mistakes|mistook) "
+    + _OBJ
+    + r"(?: \w+){0,4} for\b)",
     r"\bpass(es|ed)? for\b",
+    r"\bpass(es|ed|ing)? (\w+ )?off as\b",
+    r"\bas (\w+ ){1,2}believe[sd]?\b",
+    r"\bas (\w+ ){1,2}presents? (it|them|him|her|itself|himself|herself|themselves)\b",
     r"\bby all appearances\b",
-    r"\b(is|was|are|were) (taken|mistaken) for\b",
+    r"\b(is|was|are|were) (taken|mistaken) (for|to be)\b",
+    r"\bin the eyes of\b",
+    # Secret-existence hints: the line says outright that more is known than
+    # is shown.
+    r"\bpublicly (known|presents?|held|claimed)\b",
+    r"\bnever (said|claimed|told) otherwise\b",
+    r"\bthe rest is held\b",
+    # Workshop vocabulary that should not survive into finished player prose.
+    r"\bhomebrew",
+    r"\bplaceholder",
+    # Spaced forms of Tier 1 jargon: ordinary English too, so allowlistable.
+    r"\bout of character\b",
+    r"\bin fiction\b",
 ]
 
 TIER1_AUTHOR_RE = [re.compile(p, re.IGNORECASE) for p in TIER1_AUTHOR_MARKERS]
@@ -133,13 +189,22 @@ def scan_text(text, tier1_res=None):
     return t1, t2
 
 
-def main():
-    data = load_allowlist()
-    allow = data.get("pages", {})
+def tier1_for(data):
+    """The active Tier 1 set for one wiki's allowlist data."""
     # Per-wiki spoiler strictness: an open table (rotating GMs) opts the GM ROLE
     # terms out of Tier 1; the author markers stay Tier 1 unconditionally.
     role_is_vocab = bool(data.get("gm_role_is_player_vocabulary", False))
     tier1_res = TIER1_AUTHOR_RE if role_is_vocab else TIER1_STRICT_RE
+    # Per-wiki author terms: the setting's own internal names that never appear
+    # in player prose (Althas lists its working name for the year-end holidays).
+    # They join Tier 1, so they are never allowlistable either.
+    return tier1_res + [re.compile(p, re.IGNORECASE) for p in data.get("extra_author_terms", [])]
+
+
+def main():
+    data = load_allowlist()
+    allow = data.get("pages", {})
+    tier1_res = tier1_for(data)
     findings = []
     for md in sorted(CONTENT.rglob("*.md")):
         if ".obsidian" in md.parts:
@@ -164,7 +229,7 @@ def main():
         print(
             "\nEach must be resolved before publishing: fix the Ontos source "
             "(move author notes into a [!gm-only]/[!gm-notes] callout), or, for a "
-            "Tier 2 false positive, add it to scripts/spoiler-leak-allowlist.json "
+            f"Tier 2 false positive, add it to {ALLOWLIST_PATH} "
             "with a reason. Tier 1 hits are never allowlisted."
         )
         return 1

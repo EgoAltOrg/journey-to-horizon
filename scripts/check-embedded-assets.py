@@ -10,8 +10,9 @@ gate silently: the markdown looked right, all checks passed, and the image just
 didn't render on the live site. That is exactly how Valerion Voldis's second
 Depictions image went missing (2026-08-18).
 
-Assets are NOT copied by `sync-from-ontos.py`; they live only in `content/`
-(root CLAUDE.md rule 26) and are placed by hand. So a new body embed syncs as
+Body-embed assets are NOT copied by `sync-from-ontos.py` (only a new page's
+leading portrait is, on a wiki that sets PORTRAIT_DIR); they live only in
+`content/` (root CLAUDE.md rule 26) and are placed by hand. So a new body embed syncs as
 text while its file is easy to forget. This gate is the mechanical backstop:
 report-only, exits non-zero on any missing asset, no `--fix` (the fix is
 copying a binary in, never a machine edit). Wire it into the publish pipeline's
@@ -60,8 +61,17 @@ def available_assets():
     return names
 
 
-def embed_targets(line):
-    """Every local media target referenced on one line, both embed syntaxes."""
+# The infobox portrait, `image: name.jpg` in a page's frontmatter.
+IMAGE_KEY_RE = re.compile(r"^image:\s*[\"']?([^\"'#]+?)[\"']?\s*(?:#.*)?$")
+
+
+def embed_targets(line, in_frontmatter=False):
+    """Every local media target referenced on one line: both embed syntaxes,
+    plus a frontmatter `image:` portrait (added 2026-10-07; a missing portrait
+    file used to pass every gate and render as nothing)."""
+    m = IMAGE_KEY_RE.match(line) if in_frontmatter else None
+    if m and has_media_ext(m.group(1)) and is_local(m.group(1)):
+        yield m.group(1)
     for m in WIKI_EMBED_RE.finditer(line):
         target = m.group(1).strip()
         if has_media_ext(target) and is_local(target):
@@ -75,8 +85,11 @@ def embed_targets(line):
 def find_missing(assets):
     missing = []
     for md_file in sorted(CONTENT_DIR.rglob("*.md")):
+        fences = 0
         for lineno, line in enumerate(md_file.read_text().splitlines(), 1):
-            for target in embed_targets(line):
+            if line.strip() == "---" and fences < 2 and (fences or lineno == 1):
+                fences += 1
+            for target in embed_targets(line, in_frontmatter=fences == 1):
                 if Path(target).name not in assets:
                     missing.append((md_file, lineno, target))
     return missing
