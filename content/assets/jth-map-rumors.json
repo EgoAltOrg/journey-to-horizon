@@ -1,0 +1,55 @@
+{
+  "width": 992,
+  "height": 822,
+  "size": 48.0,
+  "regions": [
+    {
+      "hexes": [
+        [
+          473.4,
+          424.0
+        ],
+        [
+          390.3,
+          424.0
+        ],
+        [
+          348.7,
+          496.0
+        ]
+      ],
+      "rumor": {
+        "en": "A tree with the face of a man knows the secret weakness of every living thing.",
+        "pt": "Uma árvore com rosto de homem conhece a fraqueza secreta de todos os seres vivos."
+      }
+    },
+    {
+      "hexes": [
+        [
+          515.0,
+          496.0
+        ]
+      ],
+      "rumor": {
+        "en": "Spectral armies made of clouds wage war in the sky.",
+        "pt": "Exércitos espectrais feitos de nuvens travam guerra no céu."
+      }
+    },
+    {
+      "hexes": [
+        [
+          473.4,
+          568.0
+        ],
+        [
+          390.3,
+          568.0
+        ]
+      ],
+      "rumor": {
+        "en": "A ruined wizard's tower holds books about the long-ago, the never-was, and the soon-to-be.",
+        "pt": "Uma torre de feiticeiro em ruínas guarda livros sobre o passado distante, o que nunca foi e o que está para vir."
+      }
+    }
+  ]
+}

@@ -8,7 +8,7 @@ O Journey to Horizon corre o campaign frame publicado quase exatamente como est�
 
 1. **Um só nível para toda a marcha.** Toda a gente partilha um único nível: o número de santuários que a marcha reacendeu até agora. Aparece em qualquer mesa e estás ao mesmo nível que todos os outros, e uma personagem nova entra ao nível atual da marcha. (É isto que define os teus [[pt/terranamancy|pontos de Wellspring]].)
 2. **O teu próprio Vessel.** Carregas o teu próprio Vessel consagrado em vez de um grupo partilhar um, por isso nunca ficas preso a um só grupo e não há o problema de "quem o tem esta semana".
-3. **Viagem rápida, só para trás.** Podes saltar instantaneamente entre santuários que a marcha já reacendeu, mas nunca para terreno inexplorado: a jornada tem sempre de ser feita a pé da primeira vez. Para saltar, tens de estar dentro de um santuário reacendido com um sacerdote Aureliano para fazer o rito; ele leva depois todo o círculo de uma vez, de graça.
+3. **Viagem rápida, só para trás.** Podes saltar instantaneamente entre lugares que a marcha já ligou ao Wellspring, mas nunca para terreno inexplorado: a jornada tem sempre de ser feita a pé da primeira vez. Um lugar fica ligado quando o seu santuário é reacendido, ou quando um grupo lá planta uma estaca da árvore do santuário de Marrogate. Para a plantar, precisas da autorização dos habitantes e da promessa de que a protegem, e o Culto destrói uma estaca se puder. Para saltar, tens de estar num santuário reacendido ou junto a uma estaca plantada: qualquer pessoa com um Vessel consagrado pode fazer o rito, sem precisar de sacerdote, e ele leva todo o círculo de uma vez, de graça.
 4. **Um só mapa partilhado.** Todos os GMs constroem em conjunto um único mapa de todo o continente, por isso o mundo mantém-se consistente seja de quem for a noite.
 
 ## O Reacender
@@ -32,7 +32,7 @@ Comprometer toda a marcha num Reacender deixa o resto do mundo desguarnecido, qu
 
 ## Na mesa
 
-- **Descanso:** um short rest por sessão; um long rest só acontece num santuário. As sessões começam e acabam num sítio seguro, por isso o desgaste reinicia a cada noite.
+- **Descanso:** um short rest por sessão; um long rest só acontece num santuário ou junto a uma estaca plantada. As sessões começam e acabam num sítio seguro, por isso o desgaste reinicia a cada noite.
 - **O Doom Track** é marcado uma vez por semana ativa (qualquer semana com pelo menos uma sessão), não uma vez por sessão.
 - **A exploração** é canon puro: tu escolhes para onde ir a seguir, e o mapa preenche-se à medida que exploras.
 

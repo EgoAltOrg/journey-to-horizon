@@ -2,7 +2,7 @@
 title: Mapa
 ---
 
-O mundo conhecido. As regiões exploradas estão desenhadas; o resto ainda é névoa. Passa o rato por cima de um marcador para ver o lugar, ou clica para ir à sua página.
+O mundo conhecido. As regiões exploradas estão desenhadas; o resto ainda é névoa. Cada região explorada mostra o rumor que se conta sobre ela: o mistério que espera nessa direção. Passa o rato por cima de um lugar para ver o nome, ou clica para ir à sua página.
 
 ```base
 views:
@@ -16,6 +16,8 @@ views:
     zoomDelta: 0.25
     scale: "1"
     unit: km
+    overlay: assets/jth-map-rumors.json
+    lang: pt
 ```
 
 ## Legenda do mapa
@@ -55,4 +57,4 @@ Mais pontos também querem dizer mais hipóteses de encontrares problemas pelo c
 |---|---|---|
 | ![[legend-blight.svg]] | ✗ vermelho | Shadowblight: terra corrompida, perigosa de atravessar |
 
-O hex claro sem símbolo é Marrogate, onde começa cada jornada. Os hexes escuros ainda estão por explorar.
+O hex com contorno e o castelo é Marrogate, onde começa cada jornada. O interruptor Rumores, no menu de camadas do mapa, esconde ou mostra os rumores. Os hexes escuros ainda estão por explorar.

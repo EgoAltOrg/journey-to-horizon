@@ -11,6 +11,28 @@ A campaign-agnostic base for a public, spoiler-safe worldbuilding wiki with an i
 
 `scripts/sync-from-ontos.py` reads that source, strips both callout types, trims frontmatter to `title:` plus the typed-infobox fields, and writes the result here. Editing a file under `content/` directly is safe only for presentation-only data (map marker coordinates, a page's portrait embed, `changelog.md`), which the sync preserves; any lore text there is overwritten on the next run. Edit the source vault instead.
 
+## The map
+
+`content/map.md` and `content/pt/map.md` hold the interactive map: a `base` code block with one `leaflet-map` view whose `image:` is the background, `assets/jth-map.svg`. The two map pages and everything in `content/assets/` are maintained here. The sync never overwrites them; it only adds a page's portrait to `assets/` when one is missing. `quartz/plugins/transformers/leafletMapPlugin.ts` draws the map.
+
+### Map image and rumor labels
+
+The map script in the GM's vault (`jth-map-compositor.py`, run on the private key map) draws `assets/jth-map.svg`. With `--overlay` it also writes `assets/jth-map-rumors.json`. That file holds, for each region that has a rumor and at least one revealed hex, its revealed hex centers and its rumor in English and Portuguese. Region names and the rumors of unexplored regions never leave the vault. A map view shows the labels when it sets `overlay:` to that file and `lang:` to `en` or `pt`. Each rumor sits just outside the explored area on its region's side, the region's hexes light up on hover, and a Rumors switch in the map's layer menu hides the labels. When the key map changes, rerun the script and replace both files here.
+
+### Markers
+
+A page puts itself on the map with a `marker:` list in its frontmatter. `coordinates` is required, as `"lat, lng"` in map pixels: `lat` counts up from the image's bottom edge, `lng` across from its left edge. The optional fields are `icon` (a Lucide icon name), `colour`, `minZoom` and `category` (`settlement`, `holy-site`, `landmark` or `nation`; each category gets its own switch in the layer menu). A marker is a pin unless it sets `shape: hex`. A hex marker is a clickable hexagon centered on `coordinates`, with `size` as its radius in map pixels (48 matches one map hex), so it covers a hex exactly at every zoom level. The sync carries each page's `marker:` block forward, so markers are edited here.
+
+```yaml
+marker:
+    - coordinates: "432, 496"
+      icon: lucide-castle
+      colour: "#c0883a"
+      category: settlement
+      shape: hex
+      size: 48
+```
+
 ## Setting up a new wiki from this template
 
 1. `scripts/sync_config.py` — the one file each wiki edits. Set `ONTOS_SETTING` (your source folder), `PAGE_MAP`, `TITLES`, and (as they arise) `RENAMES`, `NOT_YET_PUBLIC`, `CONTENT_ONLY`, `INFOBOX_KIND_FIELDS`.

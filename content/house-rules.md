@@ -8,7 +8,7 @@ Journey to Horizon runs the published campaign frame almost exactly as written. 
 
 1. **One level for the whole march.** Everyone shares a single level: the number of shrines the march has relit so far. Drop in at any table and you are the same level as everyone else, and a brand-new character joins at the march's current level. (This is what sets your [[terranamancy|Wellspring points]].)
 2. **Your own Vessel of Light.** You carry your own consecrated Vessel rather than a party sharing one, so you are never tied to a single group and there is no "who is holding it this week" problem.
-3. **Fast travel, backwards only.** You can jump instantly between shrines the march has already relit, but never into unexplored ground: the journey still has to be walked the first time. To jump, be inside a relit shrine with an Aurelian priest to perform the rite; it then carries the whole circle at once, for free.
+3. **Fast travel, backwards only.** You can jump instantly between places the march has already joined to the Wellspring, but never into unexplored ground: the journey still has to be walked the first time. A place joins when its shrine is relit, or when a party plants a cutting from Marrogate's shrine tree there. To plant one you need the townspeople's permission and their promise to protect it, and the Cult will destroy a cutting if it can. To jump, stand at a relit shrine or a planted cutting: anyone carrying a consecrated Vessel can perform the rite, no priest needed, and it carries the whole circle at once, for free.
 4. **One shared map.** All the GMs build a single continent-wide map together, so the world stays consistent no matter whose night it is.
 
 ## The Rekindling
@@ -32,7 +32,7 @@ Committing the whole march to one Rekindling leaves the rest of the world thin, 
 
 ## At the table
 
-- **Rest:** one short rest a session; a long rest happens only at a sanctuary. Sessions start and end somewhere safe, so attrition resets each night.
+- **Rest:** one short rest a session; a long rest happens only at a sanctuary or a planted cutting. Sessions start and end somewhere safe, so attrition resets each night.
 - **The Doom Track** is marked once per active week (any week with at least one session), not once per session.
 - **Exploration** is pure canon: you choose where to go next, and the map fills in as you explore.
 

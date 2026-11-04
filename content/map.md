@@ -2,7 +2,7 @@
 title: Map
 ---
 
-The known world. Explored regions are drawn in; the rest is still fog. Hover a marker to see the place, or click through to its page.
+The known world. Explored regions are drawn in; the rest is still fog. Each explored region carries the rumor told about it: the mystery waiting in that direction. Hover a place to see its name, or click it to open its page.
 
 ```base
 views:
@@ -16,6 +16,8 @@ views:
     zoomDelta: 0.25
     scale: "1"
     unit: km
+    overlay: assets/jth-map-rumors.json
+    lang: en
 ```
 
 ## Map key
@@ -55,4 +57,4 @@ More dots also means more chances of running into trouble along the way.
 |---|---|---|
 | ![[legend-blight.svg]] | Red ✗ | Shadowblight: corrupted land, dangerous to cross |
 
-The pale hex with no symbol is Marrogate, where every journey begins. Dark hexes are still unexplored.
+The outlined hex with the castle is Marrogate, where every journey begins. The Rumors switch in the map's layer menu hides or shows the rumor labels. Dark hexes are still unexplored.
