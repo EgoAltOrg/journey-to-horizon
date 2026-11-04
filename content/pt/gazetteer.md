@@ -6,7 +6,7 @@ Os lugares que a marcha já encontrou. Isto vai-se preenchendo à medida que exp
 
 ## Lugares descobertos
 
-- [[pt/gazetteer/marrogate|Marrogate]]: o santuário abrigado no extremo sudoeste, onde toda a jornada começa.
+- [[pt/gazetteer/marrogate|Marrogate]]: o santuário abrigado no centro do Wellspring em formação, onde toda a jornada começa.
 
 Mais aparecerão aqui semana a semana.
 

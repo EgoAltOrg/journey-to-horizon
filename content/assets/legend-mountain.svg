@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="56" height="49" viewBox="0 0 100 87">
+<polygon points="98.0,43.6 74.0,85.1 26.0,85.1 2.0,43.6 26.0,2.0 74.0,2.0" fill="#b2b6bf" stroke="#b9c6cb" stroke-width="2"/>
+<g transform="translate(22.4,14.1) scale(0.2300)" style="fill:none;stroke:#2b3a42;stroke-width:15;stroke-linecap:round;stroke-linejoin:round">
+    <g id="Mountain">
+        <path d="M50,170L80,80L110,170L150,60L190,170"/>
+    </g>
+    
+</g>
+</svg>

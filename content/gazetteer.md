@@ -6,7 +6,7 @@ The places the march has found so far. This fills in as we explore: every discov
 
 ## Discovered places
 
-- [[gazetteer/marrogate|Marrogate]]: the sheltered sanctuary in the far southwest, where every journey begins.
+- [[gazetteer/marrogate|Marrogate]]: the sheltered sanctuary at the center of the newly forming Wellspring, where every journey begins.
 
 More will appear here week by week.
 

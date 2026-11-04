@@ -14,7 +14,7 @@ Atrás das barreiras, os fiéis esperaram durante séculos. Lá fora, a terrana 
 
 ## A jornada
 
-Restaurar o mundo é restaurar a sua deusa. Dez **Soul Echoes** dormem em dez santuários espalhados pelo continente. Reunidos e levados até às **Falésias do Horizonte**, no extremo nordeste, podem ressuscitar Aurelia. O caminho vai do santuário de Marrogate, a sudoeste, até ao Horizonte, um santuário de cada vez.
+Restaurar o mundo é restaurar a sua deusa. Dez **Soul Echoes** dormem em dez santuários espalhados pelo continente. Reunidos e levados até às **Falésias do Horizonte**, no extremo nordeste, podem ressuscitar Aurelia. O caminho vai do santuário de Marrogate até ao Horizonte, um santuário de cada vez.
 
 ## O Wellspring
 

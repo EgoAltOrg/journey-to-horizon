@@ -14,7 +14,7 @@ Behind the barriers, the faithful waited out the centuries. Outside them, terran
 
 ## The quest
 
-To restore the world is to restore its goddess. Ten **Soul Echoes** sleep in ten shrines across the continent. Gathered and carried to the **Cliffs of Horizon** in the far northeast, they can resurrect Aurelia. The road runs from the sanctuary of Marrogate in the southwest all the way to Horizon, one shrine at a time.
+To restore the world is to restore its goddess. Ten **Soul Echoes** sleep in ten shrines across the continent. Gathered and carried to the **Cliffs of Horizon** in the far northeast, they can resurrect Aurelia. The road runs from the sanctuary of Marrogate all the way to Horizon, one shrine at a time.
 
 ## The Wellspring
 
