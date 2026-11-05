@@ -8,6 +8,7 @@ O mundo conhecido. As regiões exploradas estão desenhadas; o resto ainda é n�
 views:
   - type: leaflet-map
     name: Map
+    mapName: pt
     image: assets/jth-map.svg
     height: 520
     minZoom: -1

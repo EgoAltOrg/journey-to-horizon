@@ -1,7 +1,8 @@
 ---
 title: Marrogate
 marker:
-    - coordinates: "432, 496"
+    - mapName: en
+      coordinates: "432, 496"
       icon: lucide-castle
       colour: "#c0883a"
       category: settlement

@@ -8,6 +8,7 @@ The known world. Explored regions are drawn in; the rest is still fog. Each expl
 views:
   - type: leaflet-map
     name: Map
+    mapName: en
     image: assets/jth-map.svg
     height: 520
     minZoom: -1

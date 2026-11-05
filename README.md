@@ -21,11 +21,14 @@ The map script in the GM's vault (`jth-map-compositor.py`, run on the private ke
 
 ### Markers
 
-A page puts itself on the map with a `marker:` list in its frontmatter. `coordinates` is required, as `"lat, lng"` in map pixels: `lat` counts up from the image's bottom edge, `lng` across from its left edge. The optional fields are `icon` (a Lucide icon name), `colour`, `minZoom` and `category` (`settlement`, `holy-site`, `landmark` or `nation`; each category gets its own switch in the layer menu). A marker is a pin unless it sets `shape: hex`. A hex marker is a clickable hexagon centered on `coordinates`, with `size` as its radius in map pixels (48 matches one map hex), so it covers a hex exactly at every zoom level. The sync carries each page's `marker:` block forward, so markers are edited here.
+A page puts itself on the map with a `marker:` list in its frontmatter. `coordinates` is required, as `"lat, lng"` in map pixels: `lat` counts up from the image's bottom edge, `lng` across from its left edge. The optional fields are `mapName` (below), `icon` (a Lucide icon name), `colour`, `minZoom` and `category` (`settlement`, `holy-site`, `landmark` or `nation`; each category gets its own switch in the layer menu). A marker is a pin unless it sets `shape: hex`. A hex marker is a clickable hexagon centered on `coordinates`, with `size` as its radius in map pixels (48 matches one map hex), so it covers a hex exactly at every zoom level. The sync carries each page's `marker:` block forward, so markers are edited here.
+
+Each language has its own map. The English map view sets `mapName: en` and the Portuguese one `mapName: pt`, and a marker with `mapName` shows only on the map of that name. A marker without it shows on every map, linking to whichever page carries it. So a place gets a marker on both its English and its Portuguese page, each naming its own map, and each map links to the page in its own language.
 
 ```yaml
 marker:
-    - coordinates: "432, 496"
+    - mapName: en
+      coordinates: "432, 496"
       icon: lucide-castle
       colour: "#c0883a"
       category: settlement
